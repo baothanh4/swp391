@@ -1,4 +1,4 @@
-package com.example.SWP391.entity;
+package com.example.SWP391.entity.Otp;
 
 import jakarta.persistence.*;
 import lombok.Getter;

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 @Repository
-public interface SystemRepository extends JpaRepository<SystemLog,Long> {
+public interface SystemLogRepository extends JpaRepository<SystemLog,Long> {
     List<SystemLog> findByAction(String action);
     List<SystemLog> findByUsername(String username);
 }

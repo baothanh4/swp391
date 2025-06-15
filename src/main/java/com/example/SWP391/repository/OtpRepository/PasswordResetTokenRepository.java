@@ -1,4 +1,4 @@
-package com.example.SWP391.repository;
+package com.example.SWP391.repository.OtpRepository;
 
 import com.example.SWP391.entity.Otp.PasswordResetToken;
 import org.springframework.data.jpa.repository.JpaRepository;

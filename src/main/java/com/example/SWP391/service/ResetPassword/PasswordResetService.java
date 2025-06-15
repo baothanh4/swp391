@@ -1,11 +1,10 @@
-package com.example.SWP391.service.Customer;
+package com.example.SWP391.service.ResetPassword;
 
 
-import com.example.SWP391.DTO.AuthRequest.ResetPasswordRequest;
-import com.example.SWP391.entity.Account;
-import com.example.SWP391.entity.PasswordResetToken;
-import com.example.SWP391.repository.AccountRepository;
-import com.example.SWP391.repository.PasswordResetTokenRepository;
+import com.example.SWP391.entity.Otp.Account;
+import com.example.SWP391.entity.Otp.PasswordResetToken;
+import com.example.SWP391.repository.UserRepository.AccountRepository;
+import com.example.SWP391.repository.OtpRepository.PasswordResetTokenRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
@@ -59,20 +58,24 @@ public class PasswordResetService {
     }
 
     @Transactional
-    public void resetPassword(String email,String otp,String newPassword,String comfirmPassword){
-        if(!newPassword.equals(comfirmPassword)){
-            throw new RuntimeException("Not the same password");
+    public void resetPassword(String email, String otp, String newPassword, String confirmPassword) {
+        if (newPassword == null || confirmPassword == null || !newPassword.equals(confirmPassword)) {
+            throw new RuntimeException("New password and confirm password do not match.");
         }
 
-        if(!verifyOtp(email, otp)){
-            throw new RuntimeException("Otp is available or expired");
+        if (!verifyOtp(email, otp)) {
+            throw new RuntimeException("Otp is invalid or expired");
         }
 
-        Account account=accRepo.findByEmail(email);
-        if(account==null){
+        Account account = accRepo.findByEmail(email);
+        if (account == null) {
             throw new RuntimeException("Email not found");
         }
-        account.setPassword(newPassword);
+
+        // (Khuyến nghị) Mã hóa mật khẩu trước khi lưu
+        account.setPassword(newPassword);  // Phải inject passwordEncoder
+        accRepo.save(account);  // <-- Bạn đã thiếu dòng này
+
         tokenRepo.deleteByEmail(email);
     }
 }
