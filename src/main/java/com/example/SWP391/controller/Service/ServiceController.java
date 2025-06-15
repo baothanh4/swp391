@@ -42,7 +42,7 @@ public class ServiceController {
         dto.setType(service.getType());
         dto.setCost(service.getCost());
         dto.setEstimatedTime(service.getEstimatedTime());
-        dto.setExpressService(service.getExpressService());
+        dto.setExpressPrice(service.getExpressService());
         return dto;
     }
 }

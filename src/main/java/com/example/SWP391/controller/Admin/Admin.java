@@ -94,7 +94,6 @@ public class Admin {
             }
 
 
-
             return ResponseEntity.ok("Tạo tài khoản thành công.");
         } catch (Exception e) {
             e.printStackTrace();
@@ -105,7 +104,6 @@ public class Admin {
     private String generateCustomId(String prefix, long count) {
         return String.format("%s%03d", prefix, count + 1);
     }
-
 
 
     @PatchMapping("/account/{id}")
@@ -119,62 +117,65 @@ public class Admin {
     }
 
     @DeleteMapping("account/{id}")
-    public ResponseEntity<String> deleteAccount(@PathVariable("id") int accountId){
+    public ResponseEntity<String> deleteAccount(@PathVariable("id") int accountId) {
 
         try {
-            Optional<Account> optionalAccount=accountRepo.findById(accountId);
-            if(optionalAccount.isEmpty()){
-                throw new RuntimeException("Account not found with id:"+accountId);
+            Optional<Account> optionalAccount = accountRepo.findById(accountId);
+            if (optionalAccount.isEmpty()) {
+                throw new RuntimeException("Account not found with id:" + accountId);
             }
 
-            Account account= optionalAccount.get();
+            Account account = optionalAccount.get();
 
-            if(account.getAdmin()!=null){
+            if (account.getAdmin() != null) {
                 adminRepo.delete(account.getAdmin());
             }
 
-            if(account.getManager()!=null){
+            if (account.getManager() != null) {
                 managerRepo.delete(account.getManager());
             }
 
-            if(account.getStaff()!=null){
+            if (account.getStaff() != null) {
                 staffRepo.delete(account.getStaff());
             }
 
-            if(account.getCustomer()!=null){
+            if (account.getCustomer() != null) {
                 custRepo.delete(account.getCustomer());
             }
             accountRepo.delete(account);
 
             return ResponseEntity.ok("delete account successfully");
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Delete failed");
         }
     }
 
     @GetMapping("/account")
-    public ResponseEntity<List<Account>> getAllListAccount(){
-        List<Account> accounts=accountRepo.findAll();
+    public ResponseEntity<List<Account>> getAllListAccount() {
+        List<Account> accounts = accountRepo.findAll();
         return ResponseEntity.ok(accounts);
     }
 
     @GetMapping("/dashboard/customers")
-    public ResponseEntity<?> getDashboardsStatus(){
-        long totalCustomer= custRepo.count();
-        Map<String, Object> stats=new HashMap<>();
-        stats.put("totalCustomer",totalCustomer);
+    public ResponseEntity<?> getDashboardsStatus() {
+        long totalCustomer = custRepo.count();
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalCustomer", totalCustomer);
 
         return ResponseEntity.ok(stats);
     }
+
     @GetMapping("/kitInventory/all")
     public ResponseEntity<List<BioKit>> getAllKits() {
         return ResponseEntity.ok(adminService.getAllKits());
     }
+
     @GetMapping("/kitInventory/available")
     public ResponseEntity<List<BioKit>> getAvailableKits() {
         return ResponseEntity.ok(adminService.getAvailableKits());
     }
+
     @PatchMapping("/{serviceId}/cost")
     public ResponseEntity<?> updateServiceCost(@PathVariable String serviceId,
                                                @RequestParam float cost) {

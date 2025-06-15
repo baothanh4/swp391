@@ -9,5 +9,5 @@ public class ServiceDTO {
     private String Type;
     private float Cost;
     private String EstimatedTime;
-    private float expressService;
+    private float expressPrice;
 }

@@ -18,13 +18,19 @@ import java.util.Optional;
 
 @Service
 public class AdminService {
-    @Autowired private AdminRepository adminRepo;
-    @Autowired private StaffRepository staffRepo;
-    @Autowired private ManagerRepository managerRepo;
-    @Autowired private AccountRepository accountRepo;
-    @Autowired private CustomerRepository customerRepository;
+    @Autowired
+    private AdminRepository adminRepo;
+    @Autowired
+    private StaffRepository staffRepo;
+    @Autowired
+    private ManagerRepository managerRepo;
+    @Autowired
+    private AccountRepository accountRepo;
+    @Autowired
+    private CustomerRepository customerRepository;
     @Autowired
     private BioKitRepository bioKitRepository;
+
     public String generateAdminID() {
         String prefix = "ADM";
         String lastId = adminRepo.findTopByOrderByAdminIDDesc()
@@ -100,7 +106,8 @@ public class AdminService {
             }
         }
     }
-    public void updateAccount(int accountID,AccountUpdate update){
+
+    public void updateAccount(int accountID, AccountUpdate update) {
         Optional<Account> optionalAccount = accountRepo.findById(accountID);
         if (optionalAccount.isEmpty()) {
             throw new RuntimeException("Account not found with id: " + accountID);
@@ -114,8 +121,8 @@ public class AdminService {
         }
 
         if (update.getEmail() != null && !update.getEmail().isBlank()) {
-            Account accountWithSameEmail=accountRepo.findByEmail(update.getEmail());
-            if(accountWithSameEmail!=null && accountWithSameEmail.equals(update.getEmail())){
+            Account accountWithSameEmail = accountRepo.findByEmail(update.getEmail());
+            if (accountWithSameEmail != null && accountWithSameEmail.equals(update.getEmail())) {
                 throw new RuntimeException("Email is already in use by another account");
             }
             account.setEmail(update.getEmail());

@@ -1,5 +1,6 @@
 package com.example.SWP391.config;
 
+
 import com.example.SWP391.security.JwtAuthenticationFilter;
 import com.example.SWP391.service.Customer.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,7 +45,8 @@ public class SecurityConfig {
                                 "/error",
                                 "/api/admin/account","/api/customers/**","/api/auth/update-password",
                                 "/api/booking/**","/api/admin/dashboard/customers","/api/admin/kitInventory/all",
-                                "/api/admin/kitInventory/available","/api/admin/{serviceId}/cost","/api/services/**"
+                                "/api/admin/kitInventory/available","/api/admin/{serviceId}/cost","/api/services/**",
+                                "/api/staff/{id}"
                         ).permitAll()
 
                         .requestMatchers("/api/admin/**").hasRole("Admin")
@@ -52,7 +55,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/staff/**").hasRole("Staff")
                         .anyRequest().authenticated()
                 )
-                .formLogin(form -> form.disable())
+                .formLogin(AbstractHttpConfigurer::disable)
+                .oauth2Client(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
 

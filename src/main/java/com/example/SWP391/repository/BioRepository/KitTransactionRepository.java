@@ -1,8 +1,11 @@
 package com.example.SWP391.repository.BioRepository;
 
+import com.example.SWP391.entity.Booking;
 import com.example.SWP391.entity.KitTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface KitTransactionRepository extends JpaRepository<KitTransaction, Long> {
+import java.util.Optional;
 
+public interface KitTransactionRepository extends JpaRepository<KitTransaction, Long> {
+    Optional<KitTransaction>findByBooking(Booking booking);
 }

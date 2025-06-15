@@ -60,7 +60,8 @@ public class Auth {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
     private final RestTemplate restTemplate = new RestTemplate();
-    @Autowired private CustomerRepository customerRepository;
+    @Autowired
+    private CustomerRepository customerRepository;
     @Autowired
     SystemLogService logService;
 
@@ -214,41 +215,43 @@ public class Auth {
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token verification failed");
     }
+
     private String generateCustomId(String prefix, long count) {
         return String.format("%s%03d", prefix, count + 1);
     }
 
     @PostMapping("/request-otp")
-    public ResponseEntity<?> requestReset(@RequestBody ResetPasswordRequest email){
+    public ResponseEntity<?> requestReset(@RequestBody ResetPasswordRequest email) {
         try {
             resetService.sendOtp(email.getEmail().trim());
             return ResponseEntity.ok("OTP was send to your email");
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PostMapping("/email/verify-otp")
-    public ResponseEntity<?> verifyOtp(@RequestBody ResetPasswordRequest email){
-        boolean valid= resetService.verifyOtp(email.getEmail().trim(), email.getOtp());
-        return valid?ResponseEntity.ok("Otp good"):ResponseEntity.badRequest().body("OTP is avaliable or expired");
+    public ResponseEntity<?> verifyResetOtp(@RequestBody ResetPasswordRequest email) {
+        boolean valid = resetService.verifyOtp(email.getEmail().trim(), email.getOtp());
+        return valid ? ResponseEntity.ok("Otp good") : ResponseEntity.badRequest().body("OTP is available or expired");
     }
 
     @PostMapping("/update-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request){
-        try{
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        try {
             resetService.resetPassword(request.getEmail(), request.getOtp(), request.getNewPassword(), request.getConfirmPassword());
             return ResponseEntity.ok("Password was changed");
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, @AuthenticationPrincipal UserDetails userDetails){
-        if(userDetails!=null){
-            String username=userDetails.getUsername();
-            String ip=request.getRemoteAddr();
-            logService.log(username,"Logout",ip);
+    public ResponseEntity<?> logout(HttpServletRequest request, @AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails != null) {
+            String username = userDetails.getUsername();
+            String ip = request.getRemoteAddr();
+            logService.log(username, "Logout", ip);
         }
         return ResponseEntity.ok("Logout successful");
     }

@@ -1,6 +1,7 @@
 package com.example.SWP391.service.Booking;
 
 import com.example.SWP391.DTO.EntityDTO.BookingDTO;
+import com.example.SWP391.DTO.EntityDTO.BookingUpdateDTO;
 import com.example.SWP391.entity.BioKit;
 import com.example.SWP391.entity.Booking;
 import com.example.SWP391.entity.KitTransaction;
@@ -56,12 +57,14 @@ public class BookingService {
         }
         return dto;
     }
+
+
     @Transactional
-   public Booking createBookingFromDTO(BookingDTO dto,String customerID) throws Exception {
+    public Booking createBookingFromDTO2(BookingDTO dto, String serviceID, String customerID) throws Exception {
         Customer customer = customerRepository.findById(customerID)
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
 
-        Service service = serviceRepository.findById(dto.getServiceID())
+        Service service = serviceRepository.findById(serviceID)
                 .orElseThrow(() -> new IllegalArgumentException("Service not found"));
 
         BioKit kit = bioKitRepo.findById(dto.getKitID())
@@ -72,87 +75,52 @@ public class BookingService {
         }
 
         float cost = service.getCost();
-        float additionalCost = dto.getAdditionalCost();
+        float mediationFee = getMediationFee(dto.getMediationMethod());
+        float additionalCost = dto.getAdditionalCost() + mediationFee;
         float totalCost = cost + additionalCost;
 
         Booking booking = new Booking();
         booking.setBookingType(dto.getBookingType());
         booking.setPaymentMethod(dto.getPaymentMethod());
         booking.setSampleMethod(dto.getSampleMethod());
-        booking.setRequest_date(dto.getRequest_date());
+        booking.setRequest_date(dto.getRequest_date() != null ? dto.getRequest_date() : LocalDate.now());
         booking.setNote(dto.getNote());
         booking.setMediationMethod(dto.getMediationMethod());
+        booking.setStatus("Pending payment");
 
-        booking.setStatus("Pending Payment"); // Consider using Enum
         booking.setCost(cost);
         booking.setAdditionalCost(additionalCost);
         booking.setTotalCost(totalCost);
-
         booking.setCustomer(customer);
         booking.setService(service);
         booking.setBioKit(kit);
 
-
-
         Booking saved = bookingRepo.save(booking);
 
+        // Ghi nhận Kit Transaction
         KitTransaction tx = new KitTransaction();
         tx.setBooking(saved);
         tx.setBioKit(kit);
         tx.setReceived(false);
         kitTransactionRepo.save(tx);
 
+        // Cập nhật tồn kho Kit
         kit.setQuantity(kit.getQuantity() - 1);
         kit.setIsSelled(kit.getIsSelled() + 1);
         kit.setAvailable(kit.getQuantity() > 0);
         bioKitRepo.save(kit);
 
         return saved;
-   }
+    }
+    private float getMediationFee(String method) {
+        if (method == null) return 0;
+        return switch (method.trim().toLowerCase()) {
+            case "Home" -> 300_000f;
+            case "at facility" -> 0f;
+            case "postal delivery" -> 50_000f;
+            default -> 0f;
+        };
+    }
 
-   @Transactional
-    public Booking createBookingFromDTO2(BookingDTO dto,String serviceID,String customerID) throws Exception{
-        Customer customer=customerRepository.findById(customerID).orElseThrow(() -> new IllegalArgumentException("Customer not found"));
-        Service service=serviceRepository.findById(serviceID).orElseThrow(() -> new IllegalArgumentException("Service not found"));
-        BioKit kit=bioKitRepo.findById(dto.getKitID()).orElseThrow(() -> new IllegalArgumentException("Kit not found"));
 
-       if (!kit.isAvailable() || kit.getQuantity() <= 0) {
-           throw new IllegalStateException("Kit is not available or out of stock");
-       }
-
-       float cost=service.getCost();
-       float additionalCost= dto.getAdditionalCost();
-       float totalCost=cost+additionalCost;
-
-       Booking booking=new Booking();
-       booking.setBookingType(dto.getBookingType());
-       booking.setPaymentMethod(dto.getPaymentMethod());
-       booking.setSampleMethod(dto.getSampleMethod());
-       booking.setRequest_date(dto.getRequest_date()!=null?dto.getRequest_date(): LocalDate.now());
-       booking.setNote(dto.getNote());
-       booking.setMediationMethod(dto.getMediationMethod());
-
-       booking.setStatus("Pending payment");
-       booking.setCost(cost);
-       booking.setAdditionalCost(additionalCost);
-       booking.setTotalCost(totalCost);
-
-       booking.setCustomer(customer);
-       booking.setService(service);
-       booking.setBioKit(kit);
-
-       Booking saved=bookingRepo.save(booking);
-       KitTransaction tx=new KitTransaction();
-       tx.setBooking(saved);
-       tx.setBioKit(kit);
-       tx.setReceived(false);
-       kitTransactionRepo.save(tx);
-
-       kit.setQuantity(kit.getQuantity()-1);
-       kit.setIsSelled(kit.getIsSelled()+1);
-       kit.setAvailable(kit.getQuantity()>0);
-       bioKitRepo.save(kit);
-
-       return saved;
-   }
 }

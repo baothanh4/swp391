@@ -11,7 +11,6 @@ import org.springframework.context.event.EventListener;
 @ComponentScan(basePackages = {"com.example.SWP391"})
 public class Swp391Application {
 	public static void main(String[] args) {
-
 		SpringApplication.run(Swp391Application.class, args);
 	}
 }
