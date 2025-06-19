@@ -10,7 +10,7 @@ import lombok.Setter;
 @Data
 @Setter
 @Getter
-public class RegisterRequest {
+public class RegisterRequestDTO {
     @NotBlank
     private String username;
     private String password;

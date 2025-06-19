@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 @Data
-public class ResetPasswordRequest {
+public class ResetPasswordRequestDTO {
     private String email;
     private String otp;
     private String newPassword;

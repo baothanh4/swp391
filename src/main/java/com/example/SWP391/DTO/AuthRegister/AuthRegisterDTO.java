@@ -7,7 +7,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 @Getter
 @Setter
-public class AuthRegister {
+public class AuthRegisterDTO {
     @NotBlank(message = "username không được để trống")
     private String username;
 
