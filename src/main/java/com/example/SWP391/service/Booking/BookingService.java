@@ -85,6 +85,7 @@ public class BookingService {
         booking.setSampleMethod(dto.getSampleMethod());
         booking.setRequest_date(dto.getRequest_date() != null ? dto.getRequest_date() : LocalDate.now());
         booking.setNote(dto.getNote());
+        booking.setReturnResultMethod(dto.getReturnResultMethod());
         booking.setMediationMethod(dto.getMediationMethod());
         booking.setStatus("Pending payment");
 
@@ -119,6 +120,7 @@ public class BookingService {
                 + "Dịch vụ: " + service.getName() + "\n"
                 + "Phương thức thanh toán: " + dto.getPaymentMethod() + "\n"
                 + "Ngày yêu cầu: " + booking.getRequest_date() + "\n"
+                + "Phương thức trả kết quả: "+dto.getReturnResultMethod()+"\n"
                 + "Bộ kit: " + kit.getName() + "\n"
                 + "Chi phí dịch vụ: " + cost + "\n"
                 + "Chi phí thêm: " + additionalCost + "\n"

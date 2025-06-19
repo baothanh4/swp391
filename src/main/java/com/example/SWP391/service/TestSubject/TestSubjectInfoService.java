@@ -1,6 +1,6 @@
 package com.example.SWP391.service.TestSubject;
 
-import com.example.SWP391.DTO.AuthRequest.TestSubjectInfoRequest;
+import com.example.SWP391.DTO.AuthRequest.TestSubjectInfoRequestDTO;
 import com.example.SWP391.entity.Booking.Booking;
 import com.example.SWP391.entity.TestSubjectInfo;
 import com.example.SWP391.repository.BookingRepository.BookingRepository;
@@ -14,7 +14,7 @@ public class TestSubjectInfoService {
     private final BookingRepository bookingRepository;
     private final TestSubjectInfoRepository testSubjectInfoRepository;
 
-    public TestSubjectInfo createTestSubjectInfo(TestSubjectInfoRequest request){
+    public TestSubjectInfo createTestSubjectInfo(TestSubjectInfoRequestDTO request){
         Booking booking=bookingRepository.findById(request.getBookingID()).orElseThrow(() ->new RuntimeException("Booking not found"));
 
         String fullname=booking.getCustomer().getFullName();

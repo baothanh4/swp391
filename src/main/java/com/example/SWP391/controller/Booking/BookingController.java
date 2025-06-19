@@ -36,6 +36,7 @@ public class BookingController {
         dto.setRequest_date(booking.getRequest_date());
         dto.setNote(booking.getNote());
         dto.setStatus(booking.getStatus());
+        dto.setReturnResultMethod(booking.getReturnResultMethod());
         dto.setMediationMethod(booking.getMediationMethod());
         dto.setExpressService(booking.isExpressService());
         if(booking.getCustomer()!=null){

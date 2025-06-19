@@ -1,6 +1,7 @@
 package com.example.SWP391.controller.Customer;
 
-import com.example.SWP391.DTO.AuthUpdate.CustomerUpdateRequest;
+
+import com.example.SWP391.DTO.AuthUpdate.CustomerUpdateRequestDTO;
 import com.example.SWP391.repository.UserRepository.CustomerRepository;
 import com.example.SWP391.service.Customer.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ public class CustomerController {
     @Autowired
     private CustomerRepository customerRepository;
     @PatchMapping("/{id}")
-    public ResponseEntity<?>  updateCustomer(@PathVariable("id") String customerId, @RequestBody CustomerUpdateRequest request){
+    public ResponseEntity<?>  updateCustomer(@PathVariable("id") String customerId, @RequestBody CustomerUpdateRequestDTO request){
         try {
             Customer updated= customerService.updateCustomer(customerId,request);
             return ResponseEntity.ok(updated);

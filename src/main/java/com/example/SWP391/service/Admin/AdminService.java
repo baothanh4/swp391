@@ -1,7 +1,7 @@
 package com.example.SWP391.service.Admin;
 
-import com.example.SWP391.DTO.AuthRequest.RegisterRequest;
-import com.example.SWP391.DTO.AuthUpdate.AccountUpdate;
+import com.example.SWP391.DTO.AuthRequest.RegisterRequestDTO;
+import com.example.SWP391.DTO.AuthUpdate.AccountUpdateDTO;
 import com.example.SWP391.entity.*;
 import com.example.SWP391.entity.Otp.Account;
 import com.example.SWP391.entity.User.Admin;
@@ -67,7 +67,7 @@ public class AdminService {
         return String.format("%s%03d", prefix, number);
     }
 
-    public void registerAccount(RegisterRequest request) {
+    public void registerAccount(RegisterRequestDTO request) {
         Account account = new Account();
         account.setUsername(request.getUsername());
         account.setPassword(request.getPassword()); // TODO: hash password
@@ -107,7 +107,7 @@ public class AdminService {
         }
     }
 
-    public void updateAccount(int accountID, AccountUpdate update) {
+    public void updateAccount(int accountID, AccountUpdateDTO update) {
         Optional<Account> optionalAccount = accountRepo.findById(accountID);
         if (optionalAccount.isEmpty()) {
             throw new RuntimeException("Account not found with id: " + accountID);

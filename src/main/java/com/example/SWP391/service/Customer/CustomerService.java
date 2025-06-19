@@ -1,7 +1,7 @@
 package com.example.SWP391.service.Customer;
 
-import com.example.SWP391.DTO.AuthUpdate.CustomerUpdateRequest;
-import com.example.SWP391.entity.Otp.Account;
+
+import com.example.SWP391.DTO.AuthUpdate.CustomerUpdateRequestDTO;
 import com.example.SWP391.entity.User.Customer;
 import com.example.SWP391.repository.UserRepository.AccountRepository;
 import com.example.SWP391.repository.UserRepository.CustomerRepository;
@@ -17,7 +17,7 @@ public class CustomerService {
 
     @Autowired
     private CustomerRepository cusRepo;
-    public Customer updateCustomer(String customerId, CustomerUpdateRequest request){
+    public Customer updateCustomer(String customerId, CustomerUpdateRequestDTO request){
         Customer customer=cusRepo.findById(customerId).orElseThrow(() -> new RuntimeException("Customer not found"));
 
         if(request.getFullName()!=null ){

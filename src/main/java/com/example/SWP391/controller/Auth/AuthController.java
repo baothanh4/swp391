@@ -1,9 +1,9 @@
 package com.example.SWP391.controller.Auth;
 
-import com.example.SWP391.DTO.AuthRegister.AuthRegister;
-import com.example.SWP391.DTO.AuthRequest.AuthRequest;
-import com.example.SWP391.DTO.AuthRequest.OtpRequest;
-import com.example.SWP391.DTO.AuthRequest.ResetPasswordRequest;
+import com.example.SWP391.DTO.AuthRegister.AuthRegisterDTO;
+import com.example.SWP391.DTO.AuthRequest.AuthRequestDTO;
+import com.example.SWP391.DTO.AuthRequest.OtpRequestDTO;
+import com.example.SWP391.DTO.AuthRequest.ResetPasswordRequestDTO;
 import com.example.SWP391.entity.Otp.Account;
 import com.example.SWP391.entity.User.Admin;
 import com.example.SWP391.entity.User.Customer;
@@ -69,7 +69,7 @@ public class AuthController {
     @Autowired private AdminRepository adminRepository;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<?> login(@RequestBody AuthRequestDTO request, HttpServletRequest httpRequest) {
         try {
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
@@ -126,7 +126,7 @@ public class AuthController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody AuthRegister dto, HttpServletRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody AuthRegisterDTO dto, HttpServletRequest request) {
         String result = registerService.register(dto);
 
         if (result.startsWith("Registration successful. An OTP has been sent to your email. Please verify it to activate your account.")) {
@@ -139,7 +139,7 @@ public class AuthController {
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity<?> verifyOtp(@RequestBody OtpRequest request) {
+    public ResponseEntity<?> verifyOtp(@RequestBody OtpRequestDTO request) {
         try {
             Optional<OtpVerification> otpOpt = otpRepo.findTopByEmailOrderByIdDesc(request.getEmail());
 
@@ -234,7 +234,7 @@ public class AuthController {
     }
 
     @PostMapping("/request-otp")
-    public ResponseEntity<?> requestReset(@RequestBody ResetPasswordRequest email) {
+    public ResponseEntity<?> requestReset(@RequestBody ResetPasswordRequestDTO email) {
         try {
             resetService.sendOtp(email.getEmail().trim());
             return ResponseEntity.ok("OTP was send to your email");
@@ -244,13 +244,13 @@ public class AuthController {
     }
 
     @PostMapping("/email/verify-otp")
-    public ResponseEntity<?> verifyResetOtp(@RequestBody ResetPasswordRequest email) {
+    public ResponseEntity<?> verifyResetOtp(@RequestBody ResetPasswordRequestDTO email) {
         boolean valid = resetService.verifyOtp(email.getEmail().trim(), email.getOtp());
         return valid ? ResponseEntity.ok("Otp good") : ResponseEntity.badRequest().body("OTP is available or expired");
     }
 
     @PostMapping("/update-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequestDTO request) {
         try {
             resetService.resetPassword(request.getEmail(), request.getOtp(), request.getNewPassword(), request.getConfirmPassword());
             return ResponseEntity.ok("Password was changed");

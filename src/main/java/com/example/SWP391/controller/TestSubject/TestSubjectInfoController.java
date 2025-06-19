@@ -1,6 +1,6 @@
 package com.example.SWP391.controller.TestSubject;
 
-import com.example.SWP391.DTO.AuthRequest.TestSubjectInfoRequest;
+import com.example.SWP391.DTO.AuthRequest.TestSubjectInfoRequestDTO;
 import com.example.SWP391.entity.TestSubjectInfo;
 import com.example.SWP391.service.TestSubject.TestSubjectInfoService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ public class TestSubjectInfoController {
     private final TestSubjectInfoService testSubjectInfoService;
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody TestSubjectInfoRequest request) {
+    public ResponseEntity<?> create(@RequestBody TestSubjectInfoRequestDTO request) {
         try {
             TestSubjectInfo created = testSubjectInfoService.createTestSubjectInfo(request);
             return ResponseEntity.ok(created);

@@ -1,8 +1,8 @@
 package com.example.SWP391.controller.Admin;
 
 
-import com.example.SWP391.DTO.AuthRequest.RegisterRequest;
-import com.example.SWP391.DTO.AuthUpdate.AccountUpdate;
+import com.example.SWP391.DTO.AuthRequest.RegisterRequestDTO;
+import com.example.SWP391.DTO.AuthUpdate.AccountUpdateDTO;
 import com.example.SWP391.entity.*;
 import com.example.SWP391.entity.Booking.Booking;
 import com.example.SWP391.entity.Otp.Account;
@@ -43,7 +43,7 @@ public class AdminController {
     @Autowired private final SystemLogRepository systemLogRepository;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequestDTO request) {
         try {
             // 1. Kiểm tra username đã tồn tại
             if (accountRepo.existsByUsername(request.getUsername())) {
@@ -107,7 +107,7 @@ public class AdminController {
 
 
     @PatchMapping("/account/{id}")
-    public ResponseEntity<?> updateAccount(@PathVariable("id") int accountId, @RequestBody AccountUpdate update) {
+    public ResponseEntity<?> updateAccount(@PathVariable("id") int accountId, @RequestBody AccountUpdateDTO update) {
         try {
             adminService.updateAccount(accountId, update);
             return ResponseEntity.ok("Account updated successfully.");
