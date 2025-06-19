@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/staff")
-public class Staff {
+public class StaffController {
     @Autowired
     private UpdateBooking updateBooking;
 
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/updateBooking/{id}")
     public ResponseEntity<?> updateBooking(@PathVariable("id") int bookingID, @RequestBody BookingUpdateDTO dto){
         try {
             Booking booking= updateBooking.updateBookingFromDTO(bookingID,dto);

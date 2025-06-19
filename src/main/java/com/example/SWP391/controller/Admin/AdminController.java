@@ -30,7 +30,7 @@ import java.util.*;
 @RequestMapping("/api/admin")
 @CrossOrigin(origins = "http://localhost:5173")
 @RequiredArgsConstructor
-public class Admin {
+public class AdminController {
     private final AccountRepository accountRepo;
     private final AdminRepository adminRepo;
     private final ManagerRepository managerRepo;
