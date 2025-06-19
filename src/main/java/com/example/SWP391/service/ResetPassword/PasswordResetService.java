@@ -59,7 +59,7 @@ public class PasswordResetService {
 
     @Transactional
     public void resetPassword(String email, String otp, String newPassword, String confirmPassword) {
-        if (newPassword == null || confirmPassword == null || !newPassword.equals(confirmPassword)) {
+        if (newPassword == null || !newPassword.equals(confirmPassword)) {
             throw new RuntimeException("New password and confirm password do not match.");
         }
 

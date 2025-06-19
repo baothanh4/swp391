@@ -46,7 +46,8 @@ public class SecurityConfig {
                                 "/api/admin/account","/api/customers/**","/api/auth/update-password",
                                 "/api/booking/**","/api/admin/dashboard/customers","/api/admin/kitInventory/all",
                                 "/api/admin/kitInventory/available","/api/admin/{serviceId}/cost","/api/services/**",
-                                "/api/staff/{id}"
+                                "/api/staff/updateBooking/{id}","/api/test-subject-info/**","/api/manager/assign-staff/{assignedId}",
+                                "/api/admin/system-log","/api/manager/kit/{KitID}","/api/staff/KitTransaction/{id}"
                         ).permitAll()
 
                         .requestMatchers("/api/admin/**").hasRole("Admin")
@@ -56,7 +57,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
-                .oauth2Client(AbstractHttpConfigurer::disable)
+
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
 

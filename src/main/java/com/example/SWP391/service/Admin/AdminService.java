@@ -152,4 +152,5 @@ public class AdminService {
     public List<BioKit> getAvailableKits() {
         return bioKitRepository.findByIsAvailable(true);
     }
+
 }

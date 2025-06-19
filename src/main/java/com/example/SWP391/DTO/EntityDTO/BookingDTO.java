@@ -21,7 +21,7 @@ public class BookingDTO {
     private String customerID;
     private String serviceID;
     private String kitID;
-
+    private boolean expressService;
     private float cost;
     private float additionalCost;
 

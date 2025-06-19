@@ -1,8 +1,6 @@
 package com.example.SWP391.controller.Service;
 
-import com.example.SWP391.DTO.EntityDTO.BookingDTO;
 import com.example.SWP391.DTO.EntityDTO.ServiceDTO;
-import com.example.SWP391.entity.Booking;
 import com.example.SWP391.entity.Service;
 import com.example.SWP391.repository.BookingRepository.ServiceRepository;
 import com.example.SWP391.service.Service.ServiceService;
@@ -42,7 +40,7 @@ public class ServiceController {
         dto.setType(service.getType());
         dto.setCost(service.getCost());
         dto.setEstimatedTime(service.getEstimatedTime());
-        dto.setExpressPrice(service.getExpressService());
+        dto.setExpressPrice(service.getExpressPrice());
         return dto;
     }
 }

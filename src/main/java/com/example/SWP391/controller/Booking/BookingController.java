@@ -1,13 +1,12 @@
 package com.example.SWP391.controller.Booking;
 
 import com.example.SWP391.DTO.EntityDTO.BookingDTO;
-import com.example.SWP391.entity.Booking;
+import com.example.SWP391.entity.Booking.Booking;
 import com.example.SWP391.repository.BookingRepository.BookingRepository;
 import com.example.SWP391.service.Booking.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,7 +37,7 @@ public class BookingController {
         dto.setNote(booking.getNote());
         dto.setStatus(booking.getStatus());
         dto.setMediationMethod(booking.getMediationMethod());
-
+        dto.setExpressService(booking.isExpressService());
         if(booking.getCustomer()!=null){
             dto.setCustomerID(booking.getCustomer().getCustomerID());
             dto.setCost(booking.getService().getCost());

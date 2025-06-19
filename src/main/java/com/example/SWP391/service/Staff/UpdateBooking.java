@@ -2,16 +2,17 @@ package com.example.SWP391.service.Staff;
 
 import com.example.SWP391.DTO.EntityDTO.BookingUpdateDTO;
 import com.example.SWP391.entity.BioKit;
-import com.example.SWP391.entity.Booking;
+import com.example.SWP391.entity.Booking.Booking;
+import com.example.SWP391.entity.Booking.BookingAssigned;
 import com.example.SWP391.entity.KitTransaction;
 import com.example.SWP391.entity.Service;
 import com.example.SWP391.repository.BioRepository.BioKitRepository;
 import com.example.SWP391.repository.BioRepository.KitTransactionRepository;
+import com.example.SWP391.repository.BookingRepository.BookingAssignedRepository;
 import com.example.SWP391.repository.BookingRepository.BookingRepository;
 import com.example.SWP391.repository.BookingRepository.ServiceRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @org.springframework.stereotype.Service
@@ -21,6 +22,7 @@ public class UpdateBooking {
     @Autowired private BioKitRepository bioKitRepo;
     @Autowired private ServiceRepository serviceRepository;
     @Autowired private KitTransactionRepository kitTransactionRepo;
+    @Autowired private BookingAssignedRepository bookingAssignedRepository;
     @Transactional
     public Booking updateBookingFromDTO(int bookingId, BookingUpdateDTO dto) throws Exception {
         Booking booking = bookingRepo.findById(bookingId)
@@ -76,6 +78,12 @@ public class UpdateBooking {
         // 4. Cập nhật Status
         if (dto.getStatus() != null) {
             booking.setStatus(dto.getStatus());
+
+            BookingAssigned assigned=bookingAssignedRepository.findByBooking(booking);
+            if(assigned!=null){
+                assigned.setStatus(dto.getStatus());
+                bookingAssignedRepository.save(assigned);
+            }
         }
 
         // 5. Tính lại chi phí

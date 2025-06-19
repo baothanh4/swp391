@@ -1,5 +1,8 @@
-package com.example.SWP391.entity;
+package com.example.SWP391.entity.Booking;
 
+import com.example.SWP391.entity.BioKit;
+import com.example.SWP391.entity.Service;
+import com.example.SWP391.entity.TestSubjectInfo;
 import com.example.SWP391.entity.User.Customer;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -8,6 +11,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -20,14 +25,19 @@ public class Booking {
 
         @Column(name="BookingType")
         private String bookingType;
+
         @Column(name="paymentMethod")
         private String paymentMethod;
+
         @Column(name="sampleMethod")
         private String sampleMethod;
+
         @Column(name="RequestDate")
         private LocalDate request_date;
+
         @Column(name="Status")
         private String status;
+
         @Column(name="Note")
         private String note;
 
@@ -43,8 +53,11 @@ public class Booking {
         @Column(name="TotalCost")
         private float totalCost;
 
+        @Column(name="ExpressService")
+        private boolean expressService;
+
         @ManyToOne
-        @JoinColumn(name = "KitID",nullable = false)
+        @JoinColumn(name = "KitID", nullable = false)
         private BioKit bioKit;
 
         @ManyToOne
@@ -55,5 +68,9 @@ public class Booking {
         @ManyToOne
         @JoinColumn(name = "CustomerID", nullable = false)
         private Customer customer;
+
+        // ✅ Quan hệ ngược: 1 Booking - N TestSubjectInfo
+        @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
+        private List<TestSubjectInfo> testSubjectInfos;
 
 }

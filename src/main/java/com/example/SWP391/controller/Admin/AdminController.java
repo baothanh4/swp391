@@ -1,29 +1,27 @@
 package com.example.SWP391.controller.Admin;
 
 
-import com.example.SWP391.DTO.AuthRequest.OtpRequest;
 import com.example.SWP391.DTO.AuthRequest.RegisterRequest;
 import com.example.SWP391.DTO.AuthUpdate.AccountUpdate;
 import com.example.SWP391.entity.*;
+import com.example.SWP391.entity.Booking.Booking;
 import com.example.SWP391.entity.Otp.Account;
-import com.example.SWP391.entity.Otp.OtpVerification;
 import com.example.SWP391.entity.User.Manager;
 import com.example.SWP391.entity.User.Staff;
+import com.example.SWP391.repository.BookingRepository.BookingRepository;
 import com.example.SWP391.repository.OtpRepository.OtpVerificationRepository;
+import com.example.SWP391.repository.SystemLogRepository;
 import com.example.SWP391.repository.UserRepository.*;
 import com.example.SWP391.service.Admin.AdminService;
 import com.example.SWP391.service.Service.ServiceService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -39,8 +37,10 @@ public class AdminController {
     private final OtpVerificationRepository otpRepo;
     private final JavaMailSender mailSender;
     private final AdminService adminService;
+    @Autowired private final BookingRepository bookingRepo;
     @Autowired
     private ServiceService serviceService;
+    @Autowired private final SystemLogRepository systemLogRepository;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
@@ -118,15 +118,30 @@ public class AdminController {
 
     @DeleteMapping("account/{id}")
     public ResponseEntity<String> deleteAccount(@PathVariable("id") int accountId) {
-
         try {
             Optional<Account> optionalAccount = accountRepo.findById(accountId);
             if (optionalAccount.isEmpty()) {
-                throw new RuntimeException("Account not found with id:" + accountId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Account not found with id: " + accountId);
             }
 
             Account account = optionalAccount.get();
 
+            // Nếu là Customer, kiểm tra các booking
+            if (account.getCustomer() != null) {
+                List<Booking> bookings = bookingRepo.findByCustomer(account.getCustomer());
+
+                boolean hasUncompletedBooking = bookings.stream()
+                        .anyMatch(booking -> !"COMPLETED".equalsIgnoreCase(booking.getStatus()));
+
+                if (hasUncompletedBooking) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body("Cannot delete customer account with uncompleted bookings.");
+                }
+
+                custRepo.delete(account.getCustomer());
+            }
+
+            // Xử lý các role khác
             if (account.getAdmin() != null) {
                 adminRepo.delete(account.getAdmin());
             }
@@ -139,17 +154,17 @@ public class AdminController {
                 staffRepo.delete(account.getStaff());
             }
 
-            if (account.getCustomer() != null) {
-                custRepo.delete(account.getCustomer());
-            }
+            // Xóa tài khoản
             accountRepo.delete(account);
 
-            return ResponseEntity.ok("delete account successfully");
+            return ResponseEntity.ok("Account deleted successfully.");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Delete failed");
         }
     }
+
+
 
     @GetMapping("/account")
     public ResponseEntity<List<Account>> getAllListAccount() {
@@ -185,5 +200,10 @@ public class AdminController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+    @GetMapping("/system-log")
+    public ResponseEntity<List<SystemLog>> getAllSystemLog(){
+        List<SystemLog> systemLogs=systemLogRepository.findAll();
+        return ResponseEntity.ok(systemLogs);
     }
 }

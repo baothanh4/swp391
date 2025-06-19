@@ -29,14 +29,5 @@ public class CustomerController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    @GetMapping("/{id}/fullname")
-    public ResponseEntity<String> getFullnameById(@PathVariable("id") String customerId) {
-        String fullName = customerRepository.findFullNameByCustomerID(customerId);
-        if (fullName != null) {
-            return ResponseEntity.ok(fullName);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Customer not found with ID: " + customerId);
-        }
-    }
+
 }

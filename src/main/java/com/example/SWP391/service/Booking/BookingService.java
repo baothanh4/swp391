@@ -1,31 +1,24 @@
 package com.example.SWP391.service.Booking;
 
 import com.example.SWP391.DTO.EntityDTO.BookingDTO;
-import com.example.SWP391.DTO.EntityDTO.BookingUpdateDTO;
 import com.example.SWP391.entity.BioKit;
-import com.example.SWP391.entity.Booking;
+import com.example.SWP391.entity.Booking.Booking;
+import com.example.SWP391.entity.Booking.BookingAssigned;
 import com.example.SWP391.entity.KitTransaction;
 import com.example.SWP391.entity.Service;
 import com.example.SWP391.entity.User.Customer;
 import com.example.SWP391.repository.BioRepository.BioKitRepository;
 import com.example.SWP391.repository.BioRepository.KitTransactionRepository;
+import com.example.SWP391.repository.BookingRepository.BookingAssignedRepository;
 import com.example.SWP391.repository.BookingRepository.BookingRepository;
 import com.example.SWP391.repository.BookingRepository.ServiceRepository;
 import com.example.SWP391.repository.UserRepository.CustomerRepository;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
-import com.google.zxing.common.BitMatrix;
+import com.example.SWP391.service.Email.EmailService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageFilter;
-import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
-import java.util.Base64;
 
 
 @org.springframework.stereotype.Service
@@ -36,6 +29,8 @@ public class BookingService {
     @Autowired private final KitTransactionRepository kitTransactionRepo;
     @Autowired private final CustomerRepository customerRepository;
     @Autowired private final ServiceRepository serviceRepository;
+    @Autowired private final BookingAssignedRepository bookingAssignedRepository;
+    @Autowired private final EmailService emailService;
     public BookingDTO convertDTO(Booking booking){
         int lastId = bookingRepo.findMaxBookingId();
         int newId = lastId + 1;
@@ -76,7 +71,12 @@ public class BookingService {
 
         float cost = service.getCost();
         float mediationFee = getMediationFee(dto.getMediationMethod());
-        float additionalCost = dto.getAdditionalCost() + mediationFee;
+
+        float expressFee=0;
+        if(dto.isExpressService()){
+            expressFee=service.getExpressPrice();
+        }
+        float additionalCost = dto.getAdditionalCost() + mediationFee+expressFee;
         float totalCost = cost + additionalCost;
 
         Booking booking = new Booking();
@@ -88,6 +88,7 @@ public class BookingService {
         booking.setMediationMethod(dto.getMediationMethod());
         booking.setStatus("Pending payment");
 
+        booking.setExpressService(dto.isExpressService());
         booking.setCost(cost);
         booking.setAdditionalCost(additionalCost);
         booking.setTotalCost(totalCost);
@@ -110,6 +111,21 @@ public class BookingService {
         kit.setAvailable(kit.getQuantity() > 0);
         bioKitRepo.save(kit);
 
+        String subject = "Xác nhận đặt lịch xét nghiệm thành công";
+        String content = "Thông tin đặt lịch:\n"
+                + "Mã khách hàng: " + customer.getCustomerID() + "\n"
+                + "Tên khách hàng: " + customer.getFullName() + "\n"
+                + "Loại đặt lịch: " + dto.getBookingType() + "\n"
+                + "Dịch vụ: " + service.getName() + "\n"
+                + "Phương thức thanh toán: " + dto.getPaymentMethod() + "\n"
+                + "Ngày yêu cầu: " + booking.getRequest_date() + "\n"
+                + "Bộ kit: " + kit.getName() + "\n"
+                + "Chi phí dịch vụ: " + cost + "\n"
+                + "Chi phí thêm: " + additionalCost + "\n"
+                + "Dịch vụ nhanh: " + (dto.isExpressService() ? "Có" : "Không") + "\n"
+                + "Tổng cộng: " + totalCost + " VND";
+        emailService.sendBookingConfirmation(customer.getEmail(), subject, content);
+
         return saved;
     }
     private float getMediationFee(String method) {
@@ -120,6 +136,20 @@ public class BookingService {
             case "postal delivery" -> 50_000f;
             default -> 0f;
         };
+    }
+    public Booking createBookingAssigned(Booking booking){
+        Booking saved=bookingRepo.save(booking);
+
+        BookingAssigned assigned=new BookingAssigned();
+        assigned.setBooking(saved);
+        assigned.setCustomerName(saved.getCustomer().getFullName());
+        assigned.setServiceType(saved.getService().getType());
+        assigned.setStatus(saved.getStatus());
+        assigned.setAssignedStaff(null);
+
+        bookingAssignedRepository.save(assigned);
+
+        return saved;
     }
 
 

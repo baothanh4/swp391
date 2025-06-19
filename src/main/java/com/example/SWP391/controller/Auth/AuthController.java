@@ -5,9 +5,11 @@ import com.example.SWP391.DTO.AuthRequest.AuthRequest;
 import com.example.SWP391.DTO.AuthRequest.OtpRequest;
 import com.example.SWP391.DTO.AuthRequest.ResetPasswordRequest;
 import com.example.SWP391.entity.Otp.Account;
+import com.example.SWP391.entity.User.Admin;
 import com.example.SWP391.entity.User.Customer;
 import com.example.SWP391.entity.Otp.OtpVerification;
 import com.example.SWP391.repository.UserRepository.AccountRepository;
+import com.example.SWP391.repository.UserRepository.AdminRepository;
 import com.example.SWP391.repository.UserRepository.CustomerRepository;
 import com.example.SWP391.repository.OtpRepository.OtpVerificationRepository;
 import com.example.SWP391.security.JwtTokenProvider;
@@ -64,6 +66,7 @@ public class AuthController {
     private CustomerRepository customerRepository;
     @Autowired
     SystemLogService logService;
+    @Autowired private AdminRepository adminRepository;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request, HttpServletRequest httpRequest) {
@@ -96,21 +99,31 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Không có quyền truy cập hợp lệ");
             }
 
-            // ✅ Ghi log đăng nhập
+            // Ghi log đăng nhập
             String ip = httpRequest.getRemoteAddr();
             logService.log(request.getUsername(), "Login", ip);
 
+            // Lấy thông tin account
+            Account account = accountRepo.findByUsername(request.getUsername())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy account"));
+
+
+
             return ResponseEntity.ok(Map.of(
-                    "token", token,
-                    "role", role.replace("ROLE_", ""),
-                    "redirect", redirect,
-                    "message", "Đăng nhập thành công với vai trò " + role.replace("ROLE_", "")
+                    "username", account.getUsername(),
+                    "fullname",account.getFullname(),
+                    "email",account.getEmail(),
+                    "phone",account.getPhone(),
+                    "role",account.getRole(),
+                    "createAt",account.getCreateAt(),
+                    "enabled",account.isEnabled()
             ));
 
         } catch (AuthenticationException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect username or password");
         }
     }
+
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody AuthRegister dto, HttpServletRequest request) {
@@ -255,4 +268,6 @@ public class AuthController {
         }
         return ResponseEntity.ok("Logout successful");
     }
+
+
 }
