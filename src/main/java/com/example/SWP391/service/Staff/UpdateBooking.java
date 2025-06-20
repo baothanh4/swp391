@@ -15,6 +15,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.LocalDateTime;
+
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
 public class UpdateBooking {
@@ -23,6 +25,7 @@ public class UpdateBooking {
     @Autowired private ServiceRepository serviceRepository;
     @Autowired private KitTransactionRepository kitTransactionRepo;
     @Autowired private BookingAssignedRepository bookingAssignedRepository;
+
     @Transactional
     public Booking updateBookingFromDTO(int bookingId, BookingUpdateDTO dto) throws Exception {
         Booking booking = bookingRepo.findById(bookingId)
@@ -82,6 +85,7 @@ public class UpdateBooking {
             BookingAssigned assigned=bookingAssignedRepository.findByBooking(booking);
             if(assigned!=null){
                 assigned.setStatus(dto.getStatus());
+                assigned.setLastUpdate(LocalDateTime.now());
                 bookingAssignedRepository.save(assigned);
             }
         }

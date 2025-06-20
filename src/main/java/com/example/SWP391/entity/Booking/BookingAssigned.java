@@ -4,8 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -21,8 +23,8 @@ public class BookingAssigned {
 
     @JsonProperty("StaffFullName")
     private String assignedStaff;
-
-    private LocalDate lastUpdate;
+    @UpdateTimestamp
+    private LocalDateTime lastUpdate;
 
     @OneToOne
     @JoinColumn(name = "BookingID",nullable = false)

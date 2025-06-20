@@ -99,6 +99,7 @@ public class BookingService {
 
         Booking saved = bookingRepo.save(booking);
 
+
         // Ghi nhận Kit Transaction
         KitTransaction tx = new KitTransaction();
         tx.setBooking(saved);
@@ -127,7 +128,7 @@ public class BookingService {
                 + "Dịch vụ nhanh: " + (dto.isExpressService() ? "Có" : "Không") + "\n"
                 + "Tổng cộng: " + totalCost + " VND";
         emailService.sendBookingConfirmation(customer.getEmail(), subject, content);
-
+        createBookingAssigned(saved);
         return saved;
     }
     private float getMediationFee(String method) {

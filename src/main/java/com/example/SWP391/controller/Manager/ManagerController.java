@@ -2,6 +2,7 @@ package com.example.SWP391.controller.Manager;
 
 import com.example.SWP391.entity.BioKit;
 import com.example.SWP391.entity.Booking.BookingAssigned;
+import com.example.SWP391.entity.User.Staff;
 import com.example.SWP391.repository.BookingRepository.BookingAssignedRepository;
 import com.example.SWP391.service.Kit.KitService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +16,10 @@ public class ManagerController {
     @Autowired
     KitService kitService;
     @PatchMapping("/assign-staff/{assignedId}")
-    public ResponseEntity<?> assignStaff(@PathVariable(name = "assignedId") Long assignedId, @RequestBody String staffFullName){
-        staffFullName = staffFullName.replace("\"", "").trim();
+    public ResponseEntity<?> assignStaff(@PathVariable(name = "assignedId") Long assignedId, @RequestBody Staff staff){
+
         BookingAssigned assigned=bookingAssignedRepository.findById(assignedId).orElseThrow(() -> new IllegalArgumentException("Booking assigned not found"));
-        assigned.setAssignedStaff(staffFullName);
+        assigned.setAssignedStaff(staff.getFullName());
         bookingAssignedRepository.save(assigned);
         return ResponseEntity.ok("Assigned successfully");
     }
