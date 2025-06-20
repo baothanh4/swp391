@@ -56,8 +56,7 @@ public class Booking {
         @Column(name="ExpressService")
         private boolean expressService;
 
-        @Column(name="ReturnResultMethod")
-        private String returnResultMethod;
+
 
         @ManyToOne
         @JoinColumn(name = "KitID", nullable = false)

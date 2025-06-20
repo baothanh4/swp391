@@ -20,7 +20,7 @@ public class BookingDTO {
     private String note;
     private String customerID;
     private String serviceID;
-    private String returnResultMethod;
+
     private String kitID;
     private boolean expressService;
     private float cost;
