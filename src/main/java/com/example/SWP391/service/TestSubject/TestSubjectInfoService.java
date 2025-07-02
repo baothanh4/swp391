@@ -23,7 +23,7 @@ public class TestSubjectInfoService {
         info.setBooking(booking);
         info.setFullname(fullname);
         info.setRelationship(request.getRelationship());
-        info.setBioType(request.getBioType());
+        info.setSampleType(request.getSampleType());
 
         return testSubjectInfoRepository.save(info);
 

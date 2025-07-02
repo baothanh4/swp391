@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -19,14 +20,31 @@ public class TestSubjectInfo {
     @ManyToOne
     @JoinColumn(name = "BookingID", nullable = false)
     private Booking booking;
-    @Column(name = "fullname")
-    private String fullname;
-    @Column(name="relationship")
-    private String relationship;
-    @Column(name="BioType")
-    private String bioType;
 
-    // ✅ Quan hệ ngược: 1 TestSubjectInfo - N TestSubjectInfoHistory
+    @Column(name = "FullName")
+    private String fullname;
+
+    @Column(name = "DateOfBirth")
+    private LocalDate dateOfBirth;
+
+    @Column(name = "Gender")
+    private int gender; // 1 = Nam, 2 = Nữ
+
+    @Column(name = "Phone")
+    private String phone;
+
+    @Column(name = "Email")
+    private String email;
+
+    @Column(name = "Relationship")
+    private String relationship;
+
+    @Column(name = "SampleType")
+    private String sampleType; // tóc / móng / niêm mạc miệng / máu
+
+    @Column(name = "IdNumber")
+    private String idNumber; // CCCD/CMND
+
     @OneToMany(mappedBy = "testSubjectInfo", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TestSubjectInfoHistory> histories;
 }

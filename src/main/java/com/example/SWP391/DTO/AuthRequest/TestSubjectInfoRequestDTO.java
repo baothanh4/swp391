@@ -6,5 +6,5 @@ import lombok.Data;
 public class TestSubjectInfoRequestDTO {
     private int bookingID;
     private String relationship;
-    private String bioType;
+    private String sampleType;
 }

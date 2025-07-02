@@ -6,7 +6,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 @Setter
 @Getter
-public class CustomerUpdateRequestDTO {
+public class UpdateRequestDTO {
     private String fullName;
     private LocalDate DOB;
     private String email;

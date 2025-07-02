@@ -53,11 +53,12 @@ public class RegisterService {
         account.setRole("Customer");
         account.setCreateAt(LocalDate.now());
         account.setEnabled(false); // chưa kích hoạt
+        account.setFullname(dto.getFullname());
 
         Customer customer = new Customer();
         customer.setCustomerID(customerID);
         customer.setAccount(account);
-        customer.setFullName(dto.getFullName());
+        customer.setFullName(dto.getFullname());
         customer.setDob(dto.getDob());
         customer.setEmail(dto.getEmail());
         customer.setPhone(dto.getPhone());

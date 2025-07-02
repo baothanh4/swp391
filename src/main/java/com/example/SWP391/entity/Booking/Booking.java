@@ -1,9 +1,8 @@
 package com.example.SWP391.entity.Booking;
 
-import com.example.SWP391.entity.BioKit;
-import com.example.SWP391.entity.Service;
-import com.example.SWP391.entity.TestSubjectInfo;
+import com.example.SWP391.entity.*;
 import com.example.SWP391.entity.User.Customer;
+import com.example.SWP391.entity.User.Staff;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
@@ -23,40 +22,44 @@ public class Booking {
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private int bookingId;
 
-        @Column(name="BookingType")
-        private String bookingType;
+        @Column(name = "CollectionMethod")
+        private String collectionMethod;
 
-        @Column(name="paymentMethod")
+        @Column(name = "PaymentCode", unique = true, nullable = true)
+        private String paymentCode;
+
+        @Column(name = "paymentMethod")
         private String paymentMethod;
 
-        @Column(name="sampleMethod")
-        private String sampleMethod;
+        @Column(name = "AppointmentTime")
+        private LocalDate appointmentTime;
 
-        @Column(name="RequestDate")
-        private LocalDate request_date;
+        @Column(name = "TimeRange")
+        private String timeRange;
 
-        @Column(name="Status")
+        @Column(name = "Status")
         private String status;
 
-        @Column(name="Note")
+        @Column(name = "Note")
         private String note;
 
-        @Column(name="Cost")
+        @Column(name = "Cost")
         private float cost;
 
         @Column(name = "MediationMethod")
         private String mediationMethod;
 
-        @Column(name="AdditionalCost")
+        @Column(name = "AdditionalCost")
         private float additionalCost;
 
-        @Column(name="TotalCost")
+        @Column(name = "TotalCost")
         private float totalCost;
 
-        @Column(name="ExpressService")
+        @Column(name = "ExpressService")
         private boolean expressService;
 
-
+        @Column(name = "Address")
+        private String address;
 
         @ManyToOne
         @JoinColumn(name = "KitID", nullable = false)
@@ -71,8 +74,19 @@ public class Booking {
         @JoinColumn(name = "CustomerID", nullable = false)
         private Customer customer;
 
-        // ✅ Quan hệ ngược: 1 Booking - N TestSubjectInfo
+
+        @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
+        private Sample sample;
+
         @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
         private List<TestSubjectInfo> testSubjectInfos;
+
+        @ManyToOne
+        @JoinColumn(name = "StaffID")
+        private Staff staff;
+
+        @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
+        private Feedback feedback;
+
 
 }

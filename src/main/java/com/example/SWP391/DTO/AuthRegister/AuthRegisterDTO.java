@@ -23,10 +23,10 @@ public class AuthRegisterDTO {
     private String phone;
 
     @NotBlank
-    private String fullName;
+    private String fullname;
 
     private String role;
-    @NotBlank
+    @NotNull
     private LocalDate dob;
     @NotBlank
     private String address;

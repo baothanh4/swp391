@@ -6,9 +6,7 @@ import java.time.LocalDate;
 
 @Data
 public class BookingUpdateDTO {
-
-    private String kitID;
-    private String mediationMethod;
     private String status;
-    private String serviceID;
+    private LocalDate appointmentTime;
+    private String timeRange;
 }

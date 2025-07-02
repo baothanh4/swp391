@@ -1,5 +1,7 @@
 package com.example.SWP391.entity;
 
+import com.example.SWP391.entity.Booking.Booking;
+import com.example.SWP391.entity.User.Customer;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,14 +14,22 @@ import java.time.LocalDate;
 @Setter
 public class Feedback {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int feedbackID;
 
 
-    private String customerID;
-
+    private String title;
+    private String content;
     private int rating;
-    private String comment;
-    private LocalDate create_at;
-    private int isDeleted;
+    private LocalDate createAt;
+
+    @ManyToOne
+    @JoinColumn(name = "customerID",nullable = false)
+    private Customer customer;
+
+    @OneToOne
+    @JoinColumn(name = "bookingID",unique = true,nullable = false)
+    private Booking booking;
+
 
 }

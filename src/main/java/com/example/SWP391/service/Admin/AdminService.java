@@ -2,6 +2,7 @@ package com.example.SWP391.service.Admin;
 
 import com.example.SWP391.DTO.AuthRequest.RegisterRequestDTO;
 import com.example.SWP391.DTO.AuthUpdate.AccountUpdateDTO;
+import com.example.SWP391.DTO.AuthUpdate.UpdateRequestDTO;
 import com.example.SWP391.entity.*;
 import com.example.SWP391.entity.Otp.Account;
 import com.example.SWP391.entity.User.Admin;
@@ -77,35 +78,38 @@ public class AdminService {
         account.setCreateAt(LocalDate.now());
         account.setEnabled(false);
 
+        // ✅ Cần set fullname trước khi save để tránh lỗi Hibernate
+        account.setFullname(request.getFullName());
+
+        // ✅ Save account trước khi gán cho entity con
         account = accountRepo.save(account);
-        System.out.println("Received full name: " + request.getFullName());
+
         switch (request.getRole()) {
             case "ROLE_ADMIN" -> {
                 Admin admin = new Admin();
                 admin.setAdminID(generateAdminID());
                 admin.setFullName(request.getFullName());
                 admin.setAccount(account);
-                account.setAdmin(admin);
-                accountRepo.save(account);
+                adminRepo.save(admin); // save Admin
             }
             case "ROLE_STAFF" -> {
                 Staff staff = new Staff();
                 staff.setStaffID(generateStaffID());
                 staff.setFullName(request.getFullName());
                 staff.setAccount(account);
-                account.setStaff(staff);
-                staffRepo.save(staff);
+                staffRepo.save(staff); // save Staff
             }
             case "ROLE_MANAGER" -> {
                 Manager manager = new Manager();
                 manager.setManagerID(generateManagerID());
                 manager.setFullName(request.getFullName());
                 manager.setAccount(account);
-                account.setManager(manager);
-                managerRepo.save(manager);
+                managerRepo.save(manager); // save Manager
             }
+            default -> throw new IllegalArgumentException("Invalid role: " + request.getRole());
         }
     }
+
 
     public void updateAccount(int accountID, AccountUpdateDTO update) {
         Optional<Account> optionalAccount = accountRepo.findById(accountID);
@@ -143,6 +147,37 @@ public class AdminService {
         account.setEnabled(update.isEnabled()); // gán luôn true/false
 
         accountRepo.save(account);
+    }
+    public Admin updateInfo(String adminID, UpdateRequestDTO request){
+        Admin admin=adminRepo.findById(adminID).orElseThrow(()-> new RuntimeException("Admin not found"));
+
+        if(request.getFullName()!=null){
+            admin.setFullName(request.getFullName());
+        }
+        if(request.getDOB()!=null){
+            admin.setDOB(request.getDOB());
+        }
+        if(request.getEmail()!=null){
+            Optional<Admin> adminWithSameEmail=adminRepo.findByEmail(request.getEmail());
+            if(adminWithSameEmail.isPresent() && !adminWithSameEmail.get().getAdminID().equals(adminID)){
+                throw new RuntimeException("Email already in use");
+            }
+            admin.setEmail(request.getEmail());
+        }
+        if(request.getPhone()!=null){
+            Optional<Admin> adminWithSamePhone=adminRepo.findByPhone(request.getPhone());
+            if(adminWithSamePhone.isPresent() && !adminWithSamePhone.get().getAdminID().equals(adminID)){
+                throw new RuntimeException("Phone already in use");
+            }
+            admin.setPhone(request.getPhone());
+        }
+        if(request.getAddress()!=null){
+            admin.setPhone(request.getPhone());
+        }
+       if(request.getGender()!=null){
+           admin.setGender(request.getGender());
+       }
+       return adminRepo.save(admin);
     }
 
     public List<BioKit> getAllKits() {

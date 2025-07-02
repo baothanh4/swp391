@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+
 @Entity
 @Getter
 @Setter
@@ -18,7 +19,9 @@ public class TestSubjectInfoHistory {
     @JoinColumn(name = "InfoID", nullable = false)
     private TestSubjectInfo testSubjectInfo;
 
-    @Column(name="UpdatedAt")
-    private LocalDate updated_at;
+    @Column(name = "UpdatedAt")
+    private LocalDate updatedAt;
 
+    @Column(name = "Note")
+    private String note; // (Optional) lý do cập nhật hoặc ghi chú
 }

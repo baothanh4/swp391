@@ -13,7 +13,8 @@ public class KitService {
     private final BioKitRepository bioKitRepository;
     public void updateQuantity(String kitId,int quantity){
         BioKit bioKit=bioKitRepository.findById(kitId).orElseThrow(()->new RuntimeException("KitID not found"));
-        bioKit.setQuantity(quantity);
+        bioKit.setQuantity(bioKit.getQuantity()+quantity);
+        bioKit.setAvailable(quantity>0);
         bioKitRepository.save(bioKit);
     }
 }

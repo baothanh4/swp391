@@ -8,9 +8,7 @@ import com.example.SWP391.entity.Otp.Account;
 import com.example.SWP391.entity.User.Admin;
 import com.example.SWP391.entity.User.Customer;
 import com.example.SWP391.entity.Otp.OtpVerification;
-import com.example.SWP391.repository.UserRepository.AccountRepository;
-import com.example.SWP391.repository.UserRepository.AdminRepository;
-import com.example.SWP391.repository.UserRepository.CustomerRepository;
+import com.example.SWP391.repository.UserRepository.*;
 import com.example.SWP391.repository.OtpRepository.OtpVerificationRepository;
 import com.example.SWP391.security.JwtTokenProvider;
 import com.example.SWP391.service.ResetPassword.PasswordResetService;
@@ -67,6 +65,8 @@ public class AuthController {
     @Autowired
     SystemLogService logService;
     @Autowired private AdminRepository adminRepository;
+    @Autowired private StaffRepository staffRepository;
+    @Autowired private ManagerRepository managerRepository;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequestDTO request, HttpServletRequest httpRequest) {
@@ -74,57 +74,62 @@ public class AuthController {
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );
-
             SecurityContextHolder.getContext().setAuthentication(auth);
 
-            // Tạo JWT token
             String token = jwtTokenProvider.generateToken(request.getUsername());
 
-            // Lấy role
             Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
-            List<String> roles = authorities.stream()
+            String role = authorities.stream()
                     .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toList());
+                    .map(r -> r.replace("ROLE_", ""))
+                    .findFirst()
+                    .orElse("UNKNOWN");
 
-            String role = roles.stream().findFirst().orElse("UNKNOWN");
-            String redirect = switch (role) {
-                case "ROLE_ADMIN" -> "/admin/register-page";
-                case "ROLE_STAFF" -> "/staff/dashboard";
-                case "ROLE_MANAGER" -> "/manager/dashboard";
-                case "ROLE_CUSTOMER" -> "/customer/index.jsx";
-                default -> null;
-            };
+            String cleanRole = role.toUpperCase();
 
-            if (redirect == null) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Không có quyền truy cập hợp lệ");
-            }
-
-            // Ghi log đăng nhập
             String ip = httpRequest.getRemoteAddr();
             logService.log(request.getUsername(), "Login", ip);
 
-            // Lấy thông tin account
             Account account = accountRepo.findByUsername(request.getUsername())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy account"));
 
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("refreshToken", token);
+            response.put("id", account.getAccountID());
+            response.put("username", account.getUsername());
+            response.put("fullName", account.getFullname());
+            response.put("email", account.getEmail());
+            response.put("phone", account.getPhone());
+            response.put("role", cleanRole);
+            response.put("isEmailVerified", account.isEnabled());
 
+            // ✅ Add specific ID based on role
+            switch (cleanRole) {
+                case "CUSTOMER" -> {
+                    customerRepository.findByAccount(account)
+                            .ifPresent(customer -> response.put("customerID", customer.getCustomerID()));
+                }
+                case "STAFF" -> {
+                    staffRepository.findByAccount(account)
+                            .ifPresent(staff -> response.put("staffID", staff.getStaffID()));
+                }
+                case "MANAGER" -> {
+                    managerRepository.findByAccount(account)
+                            .ifPresent(manager -> response.put("managerID", manager.getManagerID()));
+                }
+                case "ADMIN" -> {
+                    adminRepository.findByAccount(account)
+                            .ifPresent(admin -> response.put("adminID", admin.getAdminID()));
+                }
+            }
 
-            return ResponseEntity.ok(Map.of(
-                    "username", account.getUsername(),
-                    "fullname",account.getFullname(),
-                    "email",account.getEmail(),
-                    "phone",account.getPhone(),
-                    "role",account.getRole(),
-                    "createAt",account.getCreateAt(),
-                    "enabled",account.isEnabled()
-            ));
+            return ResponseEntity.ok(response);
 
         } catch (AuthenticationException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect username or password");
         }
     }
-
-
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody AuthRegisterDTO dto, HttpServletRequest request) {
         String result = registerService.register(dto);
@@ -175,33 +180,32 @@ public class AuthController {
     @PostMapping("/google")
     public ResponseEntity<?> loginWithGoogle(@RequestBody Map<String, String> body) {
         String idToken = body.get("credential");
-
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new JacksonFactory())
                 .setAudience(Collections.singletonList("26142191146-7u8f63rgtupdv8v6kv8ug307j55hjfob.apps.googleusercontent.com"))
                 .build();
-
         try {
             GoogleIdToken googleIdToken = verifier.verify(idToken);
             if (googleIdToken != null) {
                 GoogleIdToken.Payload payload = googleIdToken.getPayload();
-
                 String email = payload.getEmail();
                 String name = (String) payload.get("name");
+                String picture = (String) payload.get("picture");
 
                 Account account = accountRepo.findByEmail(email);
                 if (account == null) {
-                    // ✅ Tạo mới Account
+                    // Tạo mới Account
                     account = new Account();
-                    account.setUsername(email); // hoặc name slug
-                    account.setPassword(""); // Vì Google OAuth
+                    account.setUsername(email);
+                    account.setPassword("");
                     account.setEmail(email);
-                    account.setPhone(""); // Google không cung cấp
+                    account.setPhone("");
                     account.setRole("Customer");
                     account.setCreateAt(LocalDate.now());
                     account.setEnabled(true);
+                    account.setFullname(name);
                     account = accountRepo.save(account);
 
-                    // ✅ Tạo mới Customer
+                    // Tạo mới Customer
                     Customer customer = new Customer();
                     customer.setCustomerID(generateCustomId("CUST", customerRepository.count()));
                     customer.setFullName(name);
@@ -214,22 +218,35 @@ public class AuthController {
                     customerRepository.save(customer);
                 }
 
-                // ✅ Trả về thông tin (hoặc tạo JWT token tại đây)
-                String role = account.getRole();
-                return ResponseEntity.ok(Map.of(
-                        "email", email,
-                        "name", name,
-                        "role", role
-                ));
+                // ✅ Tạo JWT token cho Google login
+                String token = jwtTokenProvider.generateToken(account.getUsername());
+
+                String role = account.getRole().toUpperCase();
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("token", token);
+                response.put("refreshToken", token);
+                response.put("id", account.getAccountID());
+                response.put("username", account.getUsername());
+                response.put("fullName", name);
+                response.put("name", name);
+                response.put("email", email);
+                response.put("phone", account.getPhone());
+                response.put("role", role);
+                response.put("avatar", picture);
+                response.put("picture", picture);
+                response.put("isEmailVerified", true);
+                response.put("createdAt", account.getCreateAt());
+
+                return ResponseEntity.ok(response);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token verification failed");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
     }
 
-    private String generateCustomId(String prefix, long count) {
+        private String generateCustomId(String prefix, long count) {
         return String.format("%s%03d", prefix, count + 1);
     }
 
@@ -268,6 +285,7 @@ public class AuthController {
         }
         return ResponseEntity.ok("Logout successful");
     }
+
 
 
 }

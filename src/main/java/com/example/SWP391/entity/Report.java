@@ -1,22 +1,53 @@
-package com.example.SWP391.entity;
+    package com.example.SWP391.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+    import com.example.SWP391.entity.Booking.BookingAssigned;
+    import com.example.SWP391.entity.User.Manager;
+    import com.example.SWP391.entity.User.Staff;
+    import jakarta.persistence.*;
+    import lombok.Getter;
+    import lombok.Setter;
 
-import java.time.LocalDate;
+    import java.time.LocalDate;
 
-@Entity
-@Table(name = "Report")
-public class Report {
-    @Id
-    private int ReportID;
+    @Entity
+    @Table(name = "Report")
+    @Getter
+    @Setter
+    public class Report {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private int reportID;
 
-    private String Type;
-    private String Content;
-    private LocalDate create_at;
-    private String create_by;
-    private int quantity;
-    private int number_of_customer;
-}
+        @Column(name = "AppointmentTime")
+        private String appointmentTime;
+
+        @Column(name = "BookingID")
+        private int bookingID;
+
+        @Column(name = "CustomerName")
+        private String customerName;
+
+        @Column(name = "Status")
+        private String status;
+
+        @Column(name = "Note", columnDefinition = "TEXT")
+        private String note;
+
+        //  Gắn report với nhân viên đã viết báo cáo
+        @ManyToOne
+        @JoinColumn(name = "StaffID")
+        private Staff staff;
+
+        // 👇 Gắn với phân công nào (BookingAssigned)
+        @OneToOne
+        @JoinColumn(name = "AssignedID")
+        private BookingAssigned bookingAssigned;
+
+        // 👇 Manager nhận báo cáo
+        @ManyToOne
+        @JoinColumn(name = "ManagerID")
+        private Manager manager;
+
+
+
+    }
