@@ -111,6 +111,13 @@ public class CustomerController {
         List<SlotDTO> slotDTOS=slots.stream().map(this::convertToSlotDTO).collect(Collectors.toList());
         return ResponseEntity.ok(slotDTOS);
     }
+    @PatchMapping("/cancel-booking/{bookingID}")
+    public ResponseEntity<?> getCancel(@PathVariable(name = "bookingID") int bookingID){
+        Booking booking=bookingRepository.findById(bookingID).orElseThrow(()->new IllegalArgumentException("Booking not found"));
+        booking.setStatus("Cancel");
+        bookingRepository.save(booking);
+        return ResponseEntity.ok("Cancel Complete");
+    }
 
     public SlotDTO convertToSlotDTO(Slot slot){
         SlotDTO slotDTO=new SlotDTO();

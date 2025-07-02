@@ -15,8 +15,11 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 @RestController
@@ -57,19 +60,11 @@ public class PaymentController {
     }
 
     @PostMapping("/vnpay")
-    public ResponseEntity<?> createVNPay(@RequestBody VNPayRequest req, HttpServletRequest request) {
+    public ResponseEntity<?> createVNPay(@RequestBody VNPayRequest req, HttpServletRequest request) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
         String clientIp = request.getRemoteAddr();
         String url = vnPayService.createVNPayUrl(req.getOrderId(), req.getAmount(), clientIp);
         return ResponseEntity.ok(Map.of("vnpUrl", url));
     }
 
-    @PostMapping("/vnpay-ipn")
-    public ResponseEntity<String> handleIpn(@RequestParam Map<String, String> params) {
-        if (vnPayService.validateSignature(new HashMap<>(params))) {
-            if ("00".equals(params.get("vnp_ResponseCode"))) {
-                return ResponseEntity.ok("IPN OK");// Cập nhật trạng thái đơn
-            }
-        }
-        return ResponseEntity.status(400).body("Invalid signature");
-    }
+
 }
