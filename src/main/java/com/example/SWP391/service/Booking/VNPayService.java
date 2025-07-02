@@ -33,13 +33,14 @@ public class VNPayService {
         params.put("vnp_Amount",String.valueOf(amount*100));
         params.put("vnp_CurrCode","VND");
         params.put("vnp_TxnRef",orderID);
-        params.put("vnp_OderInfo","Thanh toan don hang:"+orderID);
+        params.put("vnp_OrderInfo","Thanh toan don hang:"+orderID);
         params.put("vnp_OrderType","other");
         params.put("vnp_Locale","vn");
         params.put("vnp_ReturnUrl",returnUrl);
         params.put("vnp_IpnUrl",ipnUrl);
-        params.put("vnp_createDate",new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+        params.put("vnp_CreateDate",new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
         params.put("vnp_IpAddr",clientIp);
+
 
         List<String> fieldNames = new ArrayList<>(params.keySet());
         Collections.sort(fieldNames);
@@ -47,7 +48,7 @@ public class VNPayService {
         StringBuilder hashData = new StringBuilder();
         StringBuilder query = new StringBuilder();
         for (String name : fieldNames) {
-            String value = URLEncoder.encode(params.get(name), StandardCharsets.US_ASCII);
+            String value = URLEncoder.encode(params.get(name), StandardCharsets.UTF_8);
             hashData.append(name).append('=').append(value);
             query.append(name).append('=').append(value).append('&');
         }
