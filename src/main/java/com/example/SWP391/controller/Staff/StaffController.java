@@ -7,9 +7,11 @@ import com.example.SWP391.controller.Booking.BookingController;
 import com.example.SWP391.entity.Booking.Booking;
 import com.example.SWP391.entity.KitTransaction;
 import com.example.SWP391.entity.Otp.Account;
+import com.example.SWP391.entity.Report;
 import com.example.SWP391.entity.User.Customer;
 import com.example.SWP391.entity.User.Staff;
 import com.example.SWP391.repository.BookingRepository.BookingRepository;
+import com.example.SWP391.repository.BookingRepository.ReportRepository;
 import com.example.SWP391.repository.UserRepository.AccountRepository;
 import com.example.SWP391.repository.UserRepository.StaffRepository;
 import com.example.SWP391.service.Kit.KitTransactionService;
@@ -29,11 +31,11 @@ public class StaffController {
     @Autowired
     private UpdateBooking updateBooking;
     @Autowired private KitTransactionService kitTransactionService;
-    @Autowired BookingRepository bookingRepository;
+    @Autowired private BookingRepository bookingRepository;
     @Autowired private BookingController bookingController;
-    @Autowired StaffRepository staffRepository;
-    @Autowired
-    AccountRepository accountRepository;
+    @Autowired private StaffRepository staffRepository;
+    @Autowired private AccountRepository accountRepository;
+    @Autowired private ReportRepository reportRepository;
     @PatchMapping("/updateBooking/{id}")
     public ResponseEntity<?> updateBooking(@PathVariable("id") int bookingID, @RequestBody BookingUpdateDTO dto){
         try {
@@ -103,6 +105,18 @@ public class StaffController {
             return ResponseEntity.badRequest().body("Updated failed");
         }
     }
+    @PatchMapping("/my-report/{reportID}")
+    public ResponseEntity<?> updateReport(@PathVariable(name = "reportID") int reportID,@RequestBody Report report){
+        try {
+            Report report1=reportRepository.findById(reportID).orElseThrow(()->new IllegalArgumentException("Report not found"));
+            report1.setStatus(report.getStatus());
+            report1.setNote(report.getNote());
+            reportRepository.save(report1);
+            return ResponseEntity.ok("Update completely");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body("Error:"+e.getMessage());
+        }
+    }
 
 
     public OrderDTO convertDTO(Booking booking) {
@@ -133,5 +147,6 @@ public class StaffController {
         staffDTO.setGender(staff.getGender());
         return staffDTO;
     }
+
 
 }
