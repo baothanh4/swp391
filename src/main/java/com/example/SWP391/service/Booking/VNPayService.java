@@ -12,6 +12,8 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -19,67 +21,73 @@ import java.util.*;
 
 @Service
 public class VNPayService {
-    @Value("${vnpay.tmncode}") private String tmnCode;
-    @Value("${vnpay.hashSecret}") private String hashSecret;
-    @Value("${vnpay.payUrl}") private String payUrl;
-    @Value("${vnpay.returnUrl}") private String returnUrl;
-    @Value("${vnpay.ipnUrl}") private String ipnUrl;
-
-    public String createVNPayUrl(String orderID,long amount,String clientIp){
-        Map<String,String> params=new HashMap<>();
-        params.put("vnp_Version","2.1.0");
-        params.put("vnp_Command","pay");
-        params.put("vnp_TmnCode",tmnCode);
-        params.put("vnp_Amount",String.valueOf(amount*100));
-        params.put("vnp_CurrCode","VND");
-        params.put("vnp_TxnRef",orderID);
-        params.put("vnp_OrderInfo","Thanh toan don hang:"+orderID);
-        params.put("vnp_OrderType","other");
-        params.put("vnp_Locale","vn");
-        params.put("vnp_ReturnUrl",returnUrl);
-        params.put("vnp_IpnUrl",ipnUrl);
-        params.put("vnp_CreateDate",new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
-        params.put("vnp_IpAddr",clientIp);
+    public String createVNPayUrl(String orderID, long amount, String clientIp) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        LocalDateTime createDate = LocalDateTime.now();
+        String formattedCreateDate = createDate.format(formatter);
+//    Orders order = createOrder(orderRequest);
+        String orderIdVnPay = UUID.randomUUID().toString().substring(0, 6);
 
 
-        List<String> fieldNames = new ArrayList<>(params.keySet());
-        Collections.sort(fieldNames);
+        String tmnCode = "305JF59T";
+        String secretKey = "59PJT7JAH0G371AXJT8SMG6S7W3WBF5V";
+        String vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
 
-        StringBuilder hashData = new StringBuilder();
-        StringBuilder query = new StringBuilder();
-        for (String name : fieldNames) {
-            String value = URLEncoder.encode(params.get(name), StandardCharsets.UTF_8);
-            hashData.append(name).append('=').append(value);
-            query.append(name).append('=').append(value).append('&');
+
+        String currCode = "VND";
+        Map<String, String> vnpParams = new TreeMap<>();
+        vnpParams.put("vnp_Version", "2.1.0");
+        vnpParams.put("vnp_Command", "pay");
+        vnpParams.put("vnp_TmnCode", tmnCode);
+        vnpParams.put("vnp_Locale", "vn");
+        vnpParams.put("vnp_CurrCode", currCode);
+        vnpParams.put("vnp_TxnRef", orderIdVnPay);
+        vnpParams.put("vnp_OrderInfo", "Thanh toan cho ma GD: " + orderID);
+        vnpParams.put("vnp_OrderType", "other");
+        vnpParams.put("vnp_Amount", (int) amount + "00");
+//    vnpParams.put("vnp_ReturnUrl", returnUrl);
+        vnpParams.put("vnp_ReturnUrl", "https://fap.fpt.edu.vn?orderID=" + orderID);
+        vnpParams.put("vnp_CreateDate", formattedCreateDate);
+        vnpParams.put("vnp_IpAddr", "localhost");
+
+
+        StringBuilder signDataBuilder = new StringBuilder();
+        for (Map.Entry<String, String> entry : vnpParams.entrySet()) {
+            signDataBuilder.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8.toString()));
+            signDataBuilder.append("=");
+            signDataBuilder.append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.toString()));
+            signDataBuilder.append("&");
         }
-        String secureHash = hmacSHA512(hashSecret, hashData.toString());
-        query.append("vnp_SecureHash=").append(secureHash);
+        signDataBuilder.deleteCharAt(signDataBuilder.length() - 1); // Remove last '&'
 
-        return payUrl + "?" + query.toString();
+        String signData = signDataBuilder.toString();
+        String signed = generateHMAC(secretKey, signData);
+
+        vnpParams.put("vnp_SecureHash", signed);
+
+        StringBuilder urlBuilder = new StringBuilder(vnpUrl);
+        urlBuilder.append("?");
+        for (Map.Entry<String, String> entry : vnpParams.entrySet()) {
+            urlBuilder.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8.toString()));
+            urlBuilder.append("=");
+            urlBuilder.append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.toString()));
+            urlBuilder.append("&");
+        }
+        return urlBuilder.deleteCharAt(urlBuilder.length() - 1).toString();
     }
-    public boolean validateSignature(Map<String, String> params) {
-        String receivedHash = params.remove("vnp_SecureHash");
-        List<String> keys = new ArrayList<>(params.keySet());
-        Collections.sort(keys);
-        StringBuilder data = new StringBuilder();
-        for (String key : keys) {
-            data.append(key).append('=').append(params.get(key)).append('&');
-        }
-        if (data.length() > 0) data.setLength(data.length() - 1); // remove last '&'
 
-        String expectedHash = hmacSHA512(hashSecret, data.toString());
-        return expectedHash.equalsIgnoreCase(receivedHash);
-    }
-    private String hmacSHA512(String key, String data) {
-        try {
-            Mac hmac512 = Mac.getInstance("HmacSHA512");
-            SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(), "HmacSHA512");
-            hmac512.init(secretKey);
-            byte[] bytes = hmac512.doFinal(data.getBytes(StandardCharsets.UTF_8));
-            return DatatypeConverter.printHexBinary(bytes).toLowerCase();
-        } catch (Exception e) {
-            throw new RuntimeException("HMAC error: " + e.getMessage());
+
+    private String generateHMAC(String secretKey, String signData) throws NoSuchAlgorithmException, InvalidKeyException {
+        Mac hmacSha512 = Mac.getInstance("HmacSHA512");
+        SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
+        hmacSha512.init(keySpec);
+        byte[] hmacBytes = hmacSha512.doFinal(signData.getBytes(StandardCharsets.UTF_8));
+
+        StringBuilder result = new StringBuilder();
+        for (byte b : hmacBytes) {
+            result.append(String.format("%02x", b));
         }
+        return result.toString();
     }
 
 }
