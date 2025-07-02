@@ -1,34 +1,28 @@
+// BookingService.java
 package com.example.SWP391.service.Booking;
 
 import com.example.SWP391.DTO.EntityDTO.BookingDTO;
-import com.example.SWP391.DTO.EntityDTO.BookingUpdateDTO;
-import com.example.SWP391.entity.BioKit;
-import com.example.SWP391.entity.Booking;
-import com.example.SWP391.entity.KitTransaction;
-import com.example.SWP391.entity.Service;
+import com.example.SWP391.DTO.EntityDTO.TestSubjectInfoDTO;
+import com.example.SWP391.entity.*;
+import com.example.SWP391.entity.Booking.Booking;
+import com.example.SWP391.entity.Booking.BookingAssigned;
 import com.example.SWP391.entity.User.Customer;
-import com.example.SWP391.repository.BioRepository.BioKitRepository;
-import com.example.SWP391.repository.BioRepository.KitTransactionRepository;
-import com.example.SWP391.repository.BookingRepository.BookingRepository;
-import com.example.SWP391.repository.BookingRepository.ServiceRepository;
+import com.example.SWP391.repository.BioRepository.*;
+import com.example.SWP391.repository.BookingRepository.*;
+import com.example.SWP391.repository.TestSubject.TestSubjectInfoRepository;
 import com.example.SWP391.repository.UserRepository.CustomerRepository;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
-import com.google.zxing.common.BitMatrix;
+import com.example.SWP391.service.Email.EmailService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageFilter;
-import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
-import java.util.Base64;
+import java.util.*;
+import java.util.stream.Collectors;
 
-
-@org.springframework.stereotype.Service
+@Service
 @RequiredArgsConstructor
 public class BookingService {
     @Autowired private final BioKitRepository bioKitRepo;
@@ -36,37 +30,20 @@ public class BookingService {
     @Autowired private final KitTransactionRepository kitTransactionRepo;
     @Autowired private final CustomerRepository customerRepository;
     @Autowired private final ServiceRepository serviceRepository;
-    public BookingDTO convertDTO(Booking booking){
-        int lastId = bookingRepo.findMaxBookingId();
-        int newId = lastId + 1;
-        BookingDTO dto=new BookingDTO();
-        booking.setBookingId(newId);
-        dto.setBookingType(booking.getBookingType());
-        dto.setPaymentMethod(booking.getPaymentMethod());
-        dto.setSampleMethod(booking.getSampleMethod());
-        dto.setRequest_date(booking.getRequest_date());
-        dto.setStatus(booking.getStatus());
-        dto.setMediationMethod(booking.getMediationMethod());
-
-        if(booking.getCustomer()!=null){
-            dto.setCustomerID(booking.getCustomer().getCustomerID());
-        }
-
-        if(booking.getService()!=null){
-            dto.setServiceID(booking.getService().getServiceId());
-        }
-        return dto;
-    }
-
+    @Autowired private final BookingAssignedRepository bookingAssignedRepository;
+    @Autowired private final EmailService emailService;
+    @Autowired private final SlotRepository slotRepository;
+    @Autowired private final SampleRepository sampleRepository;
+    @Autowired private final TestSubjectInfoRepository testSubjectInfoRepository;
+    @Autowired private final QRService qrService;
+    @Autowired private final VNPayService vnPayService;
 
     @Transactional
-    public Booking createBookingFromDTO2(BookingDTO dto, String serviceID, String customerID) throws Exception {
+    public Map<String, Object> createBookingFromDTO2(BookingDTO dto, String serviceID, String customerID, HttpServletRequest request) {
         Customer customer = customerRepository.findById(customerID)
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
-
-        Service service = serviceRepository.findById(serviceID)
+        com.example.SWP391.entity.Service service = serviceRepository.findById(serviceID)
                 .orElseThrow(() -> new IllegalArgumentException("Service not found"));
-
         BioKit kit = bioKitRepo.findById(dto.getKitID())
                 .orElseThrow(() -> new IllegalArgumentException("Kit not found"));
 
@@ -75,19 +52,28 @@ public class BookingService {
         }
 
         float cost = service.getCost();
-        float mediationFee = getMediationFee(dto.getMediationMethod());
-        float additionalCost = dto.getAdditionalCost() + mediationFee;
+        float mediationFee = getMediationFee(dto.getMediationMethod(), dto.isExpressService());
+        float expressPrice = dto.isExpressService() ? service.getExpressPrice() : 0f;
+        float additionalCost = mediationFee + expressPrice;
         float totalCost = cost + additionalCost;
 
         Booking booking = new Booking();
-        booking.setBookingType(dto.getBookingType());
+        booking.setCollectionMethod(dto.getCollectionMethod());
         booking.setPaymentMethod(dto.getPaymentMethod());
-        booking.setSampleMethod(dto.getSampleMethod());
-        booking.setRequest_date(dto.getRequest_date() != null ? dto.getRequest_date() : LocalDate.now());
-        booking.setNote(dto.getNote());
-        booking.setMediationMethod(dto.getMediationMethod());
-        booking.setStatus("Pending payment");
 
+        if ("Cash".equalsIgnoreCase(dto.getPaymentMethod()) ||
+                "Qr".equalsIgnoreCase(dto.getPaymentMethod()) ||
+                "VNPAY".equalsIgnoreCase(dto.getPaymentMethod())) {
+            booking.setPaymentCode(generateNextPaymentCode());
+        }
+
+        booking.setAppointmentTime(dto.getAppointmentTime());
+        booking.setTimeRange(dto.getTimeRange());
+        booking.setNote(dto.getNote());
+        booking.setAddress(dto.getAddress());
+        booking.setMediationMethod(normalizeMediationMethod(dto.getMediationMethod()));
+        booking.setStatus("Awaiting confirm");
+        booking.setExpressService(dto.isExpressService());
         booking.setCost(cost);
         booking.setAdditionalCost(additionalCost);
         booking.setTotalCost(totalCost);
@@ -95,32 +81,143 @@ public class BookingService {
         booking.setService(service);
         booking.setBioKit(kit);
 
-        Booking saved = bookingRepo.save(booking);
+        Slot slot = slotRepository.findByTimeRangeAndDate(booking.getTimeRange(), booking.getAppointmentTime())
+                .orElseGet(() -> {
+                    Slot newSlot = new Slot();
+                    newSlot.setDate(booking.getAppointmentTime());
+                    newSlot.setTimeRange(booking.getTimeRange());
+                    newSlot.setCurrentBooking(0);
+                    return slotRepository.save(newSlot);
+                });
 
-        // Ghi nhận Kit Transaction
+        if (slot.getCurrentBooking() >= 3) {
+            throw new IllegalStateException("Slot is full");
+        }
+        slot.setCurrentBooking(slot.getCurrentBooking() + 1);
+        slotRepository.save(slot);
+
+        Booking savedBooking = bookingRepo.save(booking);
+
         KitTransaction tx = new KitTransaction();
-        tx.setBooking(saved);
+        tx.setBooking(savedBooking);
         tx.setBioKit(kit);
         tx.setReceived(false);
         kitTransactionRepo.save(tx);
 
-        // Cập nhật tồn kho Kit
+        String prefix = kit.getKitID().equalsIgnoreCase("K001") ? "PF" : "GF";
+        int count = sampleRepository.countByCodeStartingWith(prefix);
+        String generatedCode = String.format("%s%03d", prefix, count + 1);
+
+        Sample sample = new Sample();
+        sample.setBooking(savedBooking);
+        sample.setCode(generatedCode);
+        sample.setCollectionDate(savedBooking.getAppointmentTime());
+        sample.setFullname(customer.getFullName());
+        sampleRepository.save(sample);
+
         kit.setQuantity(kit.getQuantity() - 1);
         kit.setIsSelled(kit.getIsSelled() + 1);
         kit.setAvailable(kit.getQuantity() > 0);
         bioKitRepo.save(kit);
 
-        return saved;
+        for (TestSubjectInfoDTO infoDTO : dto.getTestSubjects()) {
+            if (infoDTO.getDateOfBirth().plusYears(18).isAfter(LocalDate.now())) {
+                throw new IllegalStateException("Test subject must be over 18 years old");
+            }
+            TestSubjectInfo info = new TestSubjectInfo();
+            info.setBooking(savedBooking);
+            info.setFullname(infoDTO.getFullname());
+            info.setDateOfBirth(infoDTO.getDateOfBirth());
+            info.setGender(infoDTO.getGender());
+            info.setPhone(infoDTO.getPhone());
+            info.setEmail(infoDTO.getEmail());
+            info.setRelationship(infoDTO.getRelationship());
+            info.setSampleType(infoDTO.getSampleType());
+            info.setIdNumber(infoDTO.getIdNumber());
+            testSubjectInfoRepository.save(info);
+        }
+
+        try {
+            emailService.sendBookingConfirmation(customer.getEmail(), "Confirm the ADN testing booking successfully", "hello");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        try {
+            createBookingAssigned(savedBooking);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("booking", savedBooking);
+
+        // ✅ Chỉ sinh QR nếu là Bank
+        String payment = savedBooking.getPaymentMethod();
+        if (payment != null && payment.trim().equalsIgnoreCase("Qr")) {
+            String qrUrl = qrService.generatedQRUrl(savedBooking.getBookingId());
+            result.put("qrUrl", qrUrl);
+            System.out.println("Saved payment:"+payment);
+            System.out.println("✅ Generated QR URL: " + qrUrl);
+        }
+
+//        if (payment != null && payment.trim().equalsIgnoreCase("VNPAY")) {
+//            String vnpUrl = vnPayService.createVNPayPaymentUrl(savedBooking, request);
+//            result.put("vnpUrl", vnpUrl);
+//            System.out.println("✅ Generated VNPay URL: " + vnpUrl);
+//        }
+
+
+        return result;
     }
-    private float getMediationFee(String method) {
+
+
+    private float getMediationFee(String method, boolean isExpress) {
         if (method == null) return 0;
         return switch (method.trim().toLowerCase()) {
-            case "Home" -> 300_000f;
-            case "at facility" -> 0f;
-            case "postal delivery" -> 50_000f;
+            case "staffarrival" -> isExpress ? 0f : 500_000f;
+            case "postal" -> 250_000f;
+            case "walkin" -> 0f;
             default -> 0f;
         };
     }
 
+    public Booking createBookingAssigned(Booking booking) {
+        Booking saved = bookingRepo.save(booking);
+        BookingAssigned assigned = new BookingAssigned();
+        assigned.setBooking(saved);
+        assigned.setCustomerName(saved.getCustomer().getFullName());
+        assigned.setServiceType(saved.getService().getType());
+        assigned.setStatus(saved.getStatus());
+        assigned.setAppointmentTime(saved.getTimeRange());
+        assigned.setAssignedStaff(null);
+        bookingAssignedRepository.save(assigned);
+        return saved;
+    }
 
+    private String normalizeMediationMethod(String method) {
+        if (method == null) return "";
+        return switch (method.trim().toLowerCase()) {
+            case "staffarrival", "staff arrival" -> "Staff Collection";
+            case "postal", "postal delivery" -> "Postal Delivery";
+            case "walkin", "walk-in" -> "Walk-in Service";
+            default -> capitalizeWords(method);
+        };
+    }
+
+    private String capitalizeWords(String input) {
+        if (input == null || input.isBlank()) return "";
+        return Arrays.stream(input.trim().split("\\s+"))
+                .map(word -> Character.toUpperCase(word.charAt(0)) + word.substring(1).toLowerCase())
+                .collect(Collectors.joining(" "));
+    }
+
+    public String generateNextPaymentCode() {
+        String lastCode = bookingRepo.findLastPaymentCode();
+        int nextNumber = 1;
+        if (lastCode != null && lastCode.matches("B\\d{4}")) {
+            nextNumber = Integer.parseInt(lastCode.substring(1)) + 1;
+        }
+        return String.format("B%04d", nextNumber);
+    }
 }

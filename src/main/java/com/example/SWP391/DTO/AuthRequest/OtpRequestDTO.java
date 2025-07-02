@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class AuthRequest {
-    private String username;
-    private String password;
+public class OtpRequestDTO {
+    private String email;
+    private String otp;
 }

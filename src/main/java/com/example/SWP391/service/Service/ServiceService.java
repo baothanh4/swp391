@@ -22,16 +22,7 @@ public class ServiceService {
     public List<Service> getLegalAndNonLegalServices() {
         return serviceRepository.findByNameIn(List.of("Legal", "Non-Legal"));
     }
-//    public ServiceDTO convertDTO(Service service){
-//        ServiceDTO dto=new ServiceDTO();
-//        dto.setServiceID(service.getServiceId());
-//        dto.setName(service.getName());
-//        dto.setType(service.getType());
-//        dto.setCost(service.getCost());
-//        dto.setEstimatedTime(service.getEstimatedTime());
-//        dto.setExpressService(service.getExpressService());
-//        return dto;
-//    }
+
 
 
 

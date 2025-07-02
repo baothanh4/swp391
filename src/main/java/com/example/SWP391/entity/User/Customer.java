@@ -1,11 +1,13 @@
 package com.example.SWP391.entity.User;
 
+import com.example.SWP391.entity.Feedback;
 import com.example.SWP391.entity.Otp.Account;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Setter
@@ -26,5 +28,6 @@ public class Customer {
     private String phone;
     private String address;
     private Integer gender;
-
+    @OneToMany(mappedBy = "customer",cascade = CascadeType.ALL)
+    private List<Feedback> feedbackList;
 }

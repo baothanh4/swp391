@@ -37,6 +37,8 @@ public class Account implements UserDetails {
 
     @Column(nullable = false)
     private boolean enabled = false;
+    @Column(name = "Fullname",nullable = false)
+    private String fullname;
 
     @OneToOne(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private Customer customer;

@@ -1,14 +1,27 @@
 package com.example.SWP391.entity;
 
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
+@Entity
+@Getter
+@Setter
+@Table(name = "TestSubjectInfoHistory")
 public class TestSubjectInfoHistory {
     @Id
-    private int historyId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long historyId;
 
-    private int infoID;
-    private LocalDate updated_at;
-    private String status;
+    @ManyToOne
+    @JoinColumn(name = "InfoID", nullable = false)
+    private TestSubjectInfo testSubjectInfo;
+
+    @Column(name = "UpdatedAt")
+    private LocalDate updatedAt;
+
+    @Column(name = "Note")
+    private String note; // (Optional) lý do cập nhật hoặc ghi chú
 }

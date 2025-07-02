@@ -10,7 +10,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class AccountUpdate {
+public class AccountUpdateDTO {
     @NotBlank
     private String password;
 

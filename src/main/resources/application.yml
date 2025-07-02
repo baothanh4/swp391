@@ -11,3 +11,7 @@ spring:
           google:
             token-uri: https://oauth2.googleapis.com/token
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+payment:
+  bank-id: TPB
+  account-number: 30333982942
+  account-name: NGUYEN NHAT KIM NGAN

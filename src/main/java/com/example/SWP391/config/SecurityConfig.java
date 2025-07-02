@@ -43,20 +43,21 @@ public class SecurityConfig {
                                 "/webjars/**","/api/auth/**","/api/admin/register"
                                 ,"/api/admin/verify-otp","/api/admin/account/{id}",
                                 "/error",
-                                "/api/admin/account","/api/customers/**","/api/auth/update-password",
+                                "/api/admin/account","/api/auth/update-password",
                                 "/api/booking/**","/api/admin/dashboard/customers","/api/admin/kitInventory/all",
                                 "/api/admin/kitInventory/available","/api/admin/{serviceId}/cost","/api/services/**",
-                                "/api/staff/{id}"
+                                "/api/test-subject-info/**",
+                                "/api/admin/system-log","/api/payment/vnpay-ipn","/api/payment/vnpay-return",
+                                "/api/staff/**","/api/manager/**","/api/customer/**","/api/admin/**","/api/feedback/**","/api/payment/**"
                         ).permitAll()
 
-                        .requestMatchers("/api/admin/**").hasRole("Admin")
-                        .requestMatchers("/api/customer/**").hasRole("Customer")
-                        .requestMatchers("/api/manager/**").hasRole("Manager")
-                        .requestMatchers("/api/staff/**").hasRole("Staff")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/manager/**").hasRole("MANAGER")
+                        .requestMatchers("/api/staff/**").hasRole("STAFF")
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
-                .oauth2Client(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
 

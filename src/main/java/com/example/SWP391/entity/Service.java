@@ -20,7 +20,7 @@ public class Service {
     private float cost;
     @Column(name="EstimatedTime")
     private String estimatedTime;
-    @Column(name="ExpressService")
-    private float expressService;
+    @Column(name="ExpressPrice")
+    private float expressPrice;
 
 }

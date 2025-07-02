@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @Entity
@@ -21,4 +23,20 @@ public class Staff {
     @Column(name = "full_name")
     @JsonProperty("full_name")
     private String fullName;
+
+    @Column(name="isAvaliable")
+    private boolean isAvaliable;
+
+    @Column(name = "DOB")
+    private LocalDate DOB;
+    @Column(name = "Email")
+    private String email;
+    @Column(name = "Phone")
+    private String phone;
+    @Column(name = "Address")
+    private String address;
+    @Column(name="Gender")
+    private int gender;
+
+
 }

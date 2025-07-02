@@ -1,23 +1,29 @@
 package com.example.SWP391.service.Customer;
 
-import com.example.SWP391.DTO.AuthUpdate.CustomerUpdateRequest;
-import com.example.SWP391.entity.Otp.Account;
+
+import com.example.SWP391.DTO.AuthUpdate.UpdateRequestDTO;
+import com.example.SWP391.DTO.EntityDTO.CustomerDTO;
+import com.example.SWP391.DTO.EntityDTO.FeedbackDTO;
+import com.example.SWP391.entity.Booking.Booking;
+import com.example.SWP391.entity.Feedback;
 import com.example.SWP391.entity.User.Customer;
+import com.example.SWP391.repository.BookingRepository.BookingRepository;
+import com.example.SWP391.repository.BookingRepository.FeedbackRepository;
 import com.example.SWP391.repository.UserRepository.AccountRepository;
 import com.example.SWP391.repository.UserRepository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
 public class CustomerService {
-    @Autowired
-    private AccountRepository accRepo;
-
-    @Autowired
-    private CustomerRepository cusRepo;
-    public Customer updateCustomer(String customerId, CustomerUpdateRequest request){
+    @Autowired private AccountRepository accRepo;
+    @Autowired private CustomerRepository cusRepo;
+    @Autowired BookingRepository bookingRepository;
+    @Autowired FeedbackRepository feedbackRepository;
+    public Customer updateCustomer(String customerId, UpdateRequestDTO request){
         Customer customer=cusRepo.findById(customerId).orElseThrow(() -> new RuntimeException("Customer not found"));
 
         if(request.getFullName()!=null ){
@@ -48,5 +54,45 @@ public class CustomerService {
         }
 
         return cusRepo.save(customer);
+    }
+    public void createFeedback(int bookingID,String customerID,FeedbackDTO dto){
+        Booking booking=bookingRepository.findById(bookingID).orElseThrow(()->new IllegalArgumentException("Booking not found"));
+
+        if(booking.getFeedback()!=null){
+            throw new IllegalStateException("Feedback for this booking already exists");
+        }
+
+        Customer customer=cusRepo.findById(customerID).orElseThrow(()->new IllegalArgumentException("Customer not found"));
+
+        if(!booking.getCustomer().getCustomerID().equals(customerID)){
+            throw new IllegalStateException("this booking does not belong to customer");
+        }
+
+        if(!"COMPLETED".equalsIgnoreCase(booking.getStatus())){
+            throw new IllegalStateException("Only comleted booking can be reviewed");
+        }
+
+        Feedback feedback=new Feedback();
+        feedback.setTitle(dto.getTitle());
+        feedback.setContent(dto.getContent());
+        feedback.setRating(dto.getRating());
+        feedback.setCreateAt(LocalDate.now());
+        feedback.setCustomer(customer);
+        feedback.setBooking(booking);
+
+        booking.setFeedback(feedback);
+        feedbackRepository.save(feedback);
+
+    }
+
+    public CustomerDTO converToDTO(Customer customer){
+        CustomerDTO customerDTO=new CustomerDTO();
+        customerDTO.setFullName(customer.getFullName());
+        customerDTO.setDob(customer.getDob());
+        customerDTO.setEmail(customer.getEmail());
+        customerDTO.setPhone(customer.getPhone());
+        customerDTO.setAddress(customer.getAddress());
+        customerDTO.setGender(customer.getGender());
+        return customerDTO;
     }
 }

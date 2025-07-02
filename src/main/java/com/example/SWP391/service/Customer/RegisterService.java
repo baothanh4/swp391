@@ -1,12 +1,14 @@
 package com.example.SWP391.service.Customer;
 
-import com.example.SWP391.DTO.AuthRegister.AuthRegister;
+import com.example.SWP391.DTO.AuthRegister.AuthRegisterDTO;
+import com.example.SWP391.DTO.AuthRegister.AuthRegisterDTO;
 import com.example.SWP391.entity.Otp.Account;
 import com.example.SWP391.entity.User.Customer;
 import com.example.SWP391.entity.Otp.OtpVerification;
 import com.example.SWP391.repository.UserRepository.AccountRepository;
 import com.example.SWP391.repository.UserRepository.CustomerRepository;
 import com.example.SWP391.repository.OtpRepository.OtpVerificationRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -29,7 +31,7 @@ public class RegisterService {
 
     @Autowired
     private OtpVerificationRepository otpRepo;
-    public String register(AuthRegister dto) {
+    public String register(@Valid AuthRegisterDTO dto) {
         if (accountRepo.existsByUsername(dto.getUsername())) {
             return "Username was exist!";
         }
@@ -51,11 +53,12 @@ public class RegisterService {
         account.setRole("Customer");
         account.setCreateAt(LocalDate.now());
         account.setEnabled(false); // chưa kích hoạt
+        account.setFullname(dto.getFullname());
 
         Customer customer = new Customer();
         customer.setCustomerID(customerID);
         customer.setAccount(account);
-        customer.setFullName(dto.getFullName());
+        customer.setFullName(dto.getFullname());
         customer.setDob(dto.getDob());
         customer.setEmail(dto.getEmail());
         customer.setPhone(dto.getPhone());
