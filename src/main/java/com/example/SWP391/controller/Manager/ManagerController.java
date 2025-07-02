@@ -137,6 +137,25 @@ public class ManagerController {
             throw new RuntimeException("Update failed");
         }
     }
+    @GetMapping("/report/{managerID}")
+    public ResponseEntity<?> myReport(@PathVariable(name = "managerID") String managerID){
+        List<Report> reports=reportRepository.findByManager_ManagerID(managerID);
+        List<ReportDTO> reportDTOS=reports.stream().map(this::convertToReportDTO).collect(Collectors.toList());
+        return ResponseEntity.ok(reportDTOS);
+    }
+    public ReportDTO convertToReportDTO(Report report){
+        ReportDTO reportDTO=new ReportDTO();
+        reportDTO.setReportID(report.getReportID());
+        reportDTO.setAppointmentTime(report.getAppointmentTime());
+        reportDTO.setCustomerName(report.getCustomerName());
+        reportDTO.setNote(report.getNote());
+        reportDTO.setStatus(report.getStatus());
+        reportDTO.setAssignedID(report.getBookingAssigned().getAssignedID());
+        reportDTO.setManagerID(report.getManager().getManagerID());
+        reportDTO.setStaffID(report.getStaff().getStaffID());
+        reportDTO.setBookingID(report.getBookingID());
+        return reportDTO;
+    }
 
 
 

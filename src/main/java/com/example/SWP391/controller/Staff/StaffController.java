@@ -105,12 +105,19 @@ public class StaffController {
             return ResponseEntity.badRequest().body("Updated failed");
         }
     }
+    @GetMapping("/my-report/{staffID}")
+    public ResponseEntity<?> myReport(@PathVariable(name = "staffID") String staffID){
+            List<Report> reports=reportRepository.findByStaff_StaffID(staffID);
+            List<ReportDTO> reportDTOS=reports.stream().map(this::convertToReportDTO).collect(Collectors.toList());
+            return ResponseEntity.ok(reportDTOS);
+    }
+
     @PatchMapping("/my-report/{reportID}")
-    public ResponseEntity<?> updateReport(@PathVariable(name = "reportID") int reportID,@RequestBody Report report){
+    public ResponseEntity<?> updateReport(@PathVariable(name = "reportID") int reportID,@RequestBody ReportDTO dto){
         try {
             Report report1=reportRepository.findById(reportID).orElseThrow(()->new IllegalArgumentException("Report not found"));
-            report1.setStatus(report.getStatus());
-            report1.setNote(report.getNote());
+            report1.setStatus(dto.getStatus());
+            report1.setNote(dto.getNote());
             reportRepository.save(report1);
             return ResponseEntity.ok("Update completely");
         }catch (Exception e){
@@ -136,6 +143,19 @@ public class StaffController {
         }
 
         return orderDTO;
+    }
+    public ReportDTO convertToReportDTO(Report report){
+        ReportDTO reportDTO=new ReportDTO();
+        reportDTO.setReportID(report.getReportID());
+        reportDTO.setAppointmentTime(report.getAppointmentTime());
+        reportDTO.setCustomerName(report.getCustomerName());
+        reportDTO.setNote(report.getNote());
+        reportDTO.setStatus(report.getStatus());
+        reportDTO.setAssignedID(report.getBookingAssigned().getAssignedID());
+        reportDTO.setManagerID(report.getManager().getManagerID());
+        reportDTO.setStaffID(report.getStaff().getStaffID());
+        reportDTO.setBookingID(report.getBookingID());
+        return reportDTO;
     }
     public StaffDTO convertIntoStaffDTO(Staff staff){
         StaffDTO staffDTO=new StaffDTO();
