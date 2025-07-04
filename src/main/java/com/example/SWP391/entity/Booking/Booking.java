@@ -88,5 +88,6 @@ public class Booking {
         @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
         private Feedback feedback;
 
-
+        @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
+        private Result result;
 }
