@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class VNPayRequest {
-    private String orderId;
-    private long amount;
+    private String paymentCode;
+    private long totalCost;
 }
