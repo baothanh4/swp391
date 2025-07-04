@@ -1,6 +1,7 @@
 package com.example.SWP391.entity;
 
 import com.example.SWP391.entity.Booking.Booking;
+import com.example.SWP391.entity.User.Staff;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -44,6 +45,6 @@ public class Result {
     @Column(name = "UpdateAt")
     private LocalDateTime updateAt;
 
-    @Column(name = "CreateBy")
-    private String createBy;
+    @Column(name = "StaffID")
+    private String staffID;
 }

@@ -2,6 +2,7 @@
 package com.example.SWP391.service.Booking;
 
 import com.example.SWP391.DTO.EntityDTO.BookingDTO;
+import com.example.SWP391.DTO.EntityDTO.ResultDTO;
 import com.example.SWP391.DTO.EntityDTO.TestSubjectInfoDTO;
 import com.example.SWP391.entity.*;
 import com.example.SWP391.entity.Booking.Booking;
@@ -22,6 +23,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,7 @@ public class BookingService {
     @Autowired private final TestSubjectInfoRepository testSubjectInfoRepository;
     @Autowired private final QRService qrService;
     @Autowired private final VNPayService vnPayService;
+    @Autowired private final ResultRepository resultRepository;
 
     @Transactional
     public Map<String, Object> createBookingFromDTO2(BookingDTO dto, String serviceID, String customerID, HttpServletRequest request) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
@@ -65,7 +68,6 @@ public class BookingService {
         booking.setPaymentMethod(dto.getPaymentMethod());
 
         if ("Cash".equalsIgnoreCase(dto.getPaymentMethod()) ||
-                "Qr".equalsIgnoreCase(dto.getPaymentMethod()) ||
                 "VNPAY".equalsIgnoreCase(dto.getPaymentMethod())) {
             booking.setPaymentCode(generateNextPaymentCode());
         }
@@ -124,9 +126,7 @@ public class BookingService {
         bioKitRepo.save(kit);
 
         for (TestSubjectInfoDTO infoDTO : dto.getTestSubjects()) {
-            if (infoDTO.getDateOfBirth().plusYears(18).isAfter(LocalDate.now())) {
-                throw new IllegalStateException("Test subject must be over 18 years old");
-            }
+
             TestSubjectInfo info = new TestSubjectInfo();
             info.setBooking(savedBooking);
             info.setFullname(infoDTO.getFullname());
@@ -138,6 +138,12 @@ public class BookingService {
             info.setSampleType(infoDTO.getSampleType());
             info.setIdNumber(infoDTO.getIdNumber());
             testSubjectInfoRepository.save(info);
+        }
+
+        try{
+            createResult(savedBooking);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
         }
 
         try {
@@ -157,19 +163,22 @@ public class BookingService {
 
         // ✅ Chỉ sinh QR nếu là Bank
         String payment = savedBooking.getPaymentMethod();
-        if (payment != null && payment.trim().equalsIgnoreCase("Qr")) {
-            String qrUrl = qrService.generatedQRUrl(savedBooking.getBookingId());
-            result.put("qrUrl", qrUrl);
-            System.out.println("Saved payment:"+payment);
-            System.out.println("✅ Generated QR URL: " + qrUrl);
-        }
-
-//        if (payment != null && payment.trim().equalsIgnoreCase("VNPAY")) {
-//            String clientIp=request.getRemoteAddr();
-//            String vnpUrl = vnPayService.createVNPayUrl(savedBooking.getPaymentCode(),Math.round(savedBooking.getTotalCost()),clientIp);
-//            result.put("vnpUrl", vnpUrl);
-//            System.out.println("✅ Generated VNPay URL: " + vnpUrl);
+//        if (payment != null && payment.trim().equalsIgnoreCase("Qr")) {
+//            String qrUrl = qrService.generatedQRUrl(savedBooking.getBookingId());
+//            System.out.println("✅ QR URL Generated: " + qrUrl); // LOG RẤT QUAN TRỌNG
+//            result.put("qrUrl", qrUrl);
 //        }
+
+        if (payment != null && payment.trim().equalsIgnoreCase("VNPAY")) {
+            String clientIp = request.getRemoteAddr();
+            String vnpUrl = vnPayService.createVNPayUrl(
+                    savedBooking.getPaymentCode(),
+                    Math.round(savedBooking.getTotalCost()),
+                    clientIp
+            );
+            result.put("vnpUrl", vnpUrl);
+            System.out.println("✅ Generated VNPay URL: " + vnpUrl);
+        }
 
 
         return result;
@@ -184,6 +193,21 @@ public class BookingService {
             case "walkin" -> 0f;
             default -> 0f;
         };
+    }
+
+    public Booking createResult(Booking booking){
+        Booking saved=bookingRepo.save(booking);
+        Result result=new Result();
+        result.setBooking(saved);
+        result.setRelationship(null);
+        result.setConclusion(null);
+        result.setConfidencePercentage(0);
+        result.setPdfPath(null);
+        result.setAvailable(false);
+        result.setCreateAt(LocalDate.now());
+        result.setUpdateAt(LocalDateTime.now());
+        resultRepository.save(result);
+        return saved;
     }
 
     public Booking createBookingAssigned(Booking booking) {

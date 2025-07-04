@@ -8,10 +8,12 @@ import com.example.SWP391.entity.Booking.Booking;
 import com.example.SWP391.entity.KitTransaction;
 import com.example.SWP391.entity.Otp.Account;
 import com.example.SWP391.entity.Report;
+import com.example.SWP391.entity.Result;
 import com.example.SWP391.entity.User.Customer;
 import com.example.SWP391.entity.User.Staff;
 import com.example.SWP391.repository.BookingRepository.BookingRepository;
 import com.example.SWP391.repository.BookingRepository.ReportRepository;
+import com.example.SWP391.repository.BookingRepository.ResultRepository;
 import com.example.SWP391.repository.UserRepository.AccountRepository;
 import com.example.SWP391.repository.UserRepository.StaffRepository;
 import com.example.SWP391.service.Kit.KitTransactionService;
@@ -21,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,6 +39,8 @@ public class StaffController {
     @Autowired private StaffRepository staffRepository;
     @Autowired private AccountRepository accountRepository;
     @Autowired private ReportRepository reportRepository;
+    @Autowired private ResultRepository resultRepository;
+
     @PatchMapping("/updateBooking/{id}")
     public ResponseEntity<?> updateBooking(@PathVariable("id") int bookingID, @RequestBody BookingUpdateDTO dto){
         try {
@@ -111,6 +116,13 @@ public class StaffController {
             List<ReportDTO> reportDTOS=reports.stream().map(this::convertToReportDTO).collect(Collectors.toList());
             return ResponseEntity.ok(reportDTOS);
     }
+    @GetMapping("/my-all-result/{staffID}")
+    public ResponseEntity<?> myResult(@PathVariable(name = "staffID") String staffID){
+        List<Result> results=resultRepository.findByStaffID(staffID);
+        List<ResultDTO> resultDTOS=results.stream().map(this::convertToResultDTO).collect(Collectors.toList());
+        return ResponseEntity.ok(resultDTOS);
+    }
+
 
     @PatchMapping("/my-report/{reportID}")
     public ResponseEntity<?> updateReport(@PathVariable(name = "reportID") int reportID,@RequestBody ReportDTO dto){
@@ -120,6 +132,24 @@ public class StaffController {
             report1.setNote(dto.getNote());
             reportRepository.save(report1);
             return ResponseEntity.ok("Update completely");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body("Error:"+e.getMessage());
+        }
+    }
+
+
+    @PatchMapping("/update-result/{resultID}")
+    public ResponseEntity<?> updateResult(@PathVariable(name = "resultID") int resultID,@RequestBody ResultDTO dto){
+        try {
+            Result result=resultRepository.findById(resultID).orElseThrow(()->new IllegalArgumentException("Result not found"));
+            result.setRelationship(dto.getRelationship());
+            result.setConclusion(dto.getConclusion());
+            result.setConfidencePercentage(dto.getConfidencePercentage());
+            result.setPdfPath(dto.getPdfPath());
+            result.setAvailable(dto.isAvailable());
+            result.setUpdateAt(LocalDateTime.now());
+            resultRepository.save(result);
+            return ResponseEntity.ok("Update result complete");
         }catch (Exception e){
             return ResponseEntity.badRequest().body("Error:"+e.getMessage());
         }
@@ -144,6 +174,20 @@ public class StaffController {
 
         return orderDTO;
     }
+    public ResultDTO convertToResultDTO(Result result){
+        ResultDTO resultDTO=new ResultDTO();
+        resultDTO.setStaffID(result.getStaffID());
+        resultDTO.setRelationship(result.getRelationship());
+        resultDTO.setConclusion(result.getConclusion());
+        resultDTO.setPdfPath(result.getPdfPath());
+        resultDTO.setAvailable(result.isAvailable());
+        resultDTO.setUpdateAt(result.getUpdateAt());
+        resultDTO.setCreateAt(result.getCreateAt());
+        resultDTO.setBookingID(result.getBooking().getBookingId());
+        return resultDTO;
+    }
+
+
     public ReportDTO convertToReportDTO(Report report){
         ReportDTO reportDTO=new ReportDTO();
         reportDTO.setReportID(report.getReportID());

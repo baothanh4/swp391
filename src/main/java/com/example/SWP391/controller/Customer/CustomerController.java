@@ -39,15 +39,23 @@ public class CustomerController {
     AccountRepository accountRepository;
     @Autowired
     SlotRepository slotRepository;
-    @PatchMapping("/{id}")
-    public ResponseEntity<?>  updateCustomer(@PathVariable("id") String customerId, @RequestBody UpdateRequestDTO request){
+    @PatchMapping("/my-account/{id}")
+    public ResponseEntity<?> updateCustomer(@PathVariable("id") String customerId, @RequestBody UpdateRequestDTO request) {
         try {
-            Customer updated= customerService.updateCustomer(customerId,request);
-            Account account= updated.getAccount();
-            account.setFullname(request.getFullName());
-            accountRepository.save(account);
-            return ResponseEntity.ok(updated);
-        }catch (RuntimeException e){
+            // Cập nhật thông tin Customer
+            Customer updated = customerService.updateCustomer(customerId, request);
+
+            // Đồng bộ FullName vào Account
+            Account account = updated.getAccount();
+            if (account != null && request.getFullName() != null) {
+                account.setFullname(request.getFullName());
+                accountRepository.save(account);
+            }
+
+            // Trả về DTO nếu cần
+            CustomerDTO customerDTO = converToDTO(updated);
+            return ResponseEntity.ok(customerDTO); // hoặc trả về updated nếu bạn muốn
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
