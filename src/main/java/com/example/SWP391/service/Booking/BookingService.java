@@ -18,6 +18,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,7 +42,7 @@ public class BookingService {
     @Autowired private final VNPayService vnPayService;
 
     @Transactional
-    public Map<String, Object> createBookingFromDTO2(BookingDTO dto, String serviceID, String customerID, HttpServletRequest request) {
+    public Map<String, Object> createBookingFromDTO2(BookingDTO dto, String serviceID, String customerID, HttpServletRequest request) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
         Customer customer = customerRepository.findById(customerID)
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
         com.example.SWP391.entity.Service service = serviceRepository.findById(serviceID)
@@ -138,7 +141,7 @@ public class BookingService {
         }
 
         try {
-            emailService.sendBookingConfirmation(customer.getEmail(), "Confirm the ADN testing booking successfully", "hello");
+            emailService.sendBookingConfirmationEnglish(customer.getEmail(),savedBooking);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -162,7 +165,8 @@ public class BookingService {
         }
 
 //        if (payment != null && payment.trim().equalsIgnoreCase("VNPAY")) {
-//            String vnpUrl = vnPayService.createVNPayPaymentUrl(savedBooking, request);
+//            String clientIp=request.getRemoteAddr();
+//            String vnpUrl = vnPayService.createVNPayUrl(savedBooking.getPaymentCode(),Math.round(savedBooking.getTotalCost()),clientIp);
 //            result.put("vnpUrl", vnpUrl);
 //            System.out.println("✅ Generated VNPay URL: " + vnpUrl);
 //        }
