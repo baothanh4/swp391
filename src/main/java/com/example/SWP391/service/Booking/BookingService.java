@@ -2,6 +2,7 @@
 package com.example.SWP391.service.Booking;
 
 import com.example.SWP391.DTO.EntityDTO.BookingDTO;
+import com.example.SWP391.DTO.EntityDTO.BookingResponseDTO;
 import com.example.SWP391.DTO.EntityDTO.ResultDTO;
 import com.example.SWP391.DTO.EntityDTO.TestSubjectInfoDTO;
 import com.example.SWP391.entity.*;
@@ -45,7 +46,7 @@ public class BookingService {
     @Autowired private final ResultRepository resultRepository;
 
     @Transactional
-    public Map<String, Object> createBookingFromDTO2(BookingDTO dto, String serviceID, String customerID, HttpServletRequest request) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
+    public BookingResponseDTO createBookingFromDTO2(BookingDTO dto, String serviceID, String customerID, HttpServletRequest request) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
         Customer customer = customerRepository.findById(customerID)
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
         com.example.SWP391.entity.Service service = serviceRepository.findById(serviceID)
@@ -126,7 +127,6 @@ public class BookingService {
         bioKitRepo.save(kit);
 
         for (TestSubjectInfoDTO infoDTO : dto.getTestSubjects()) {
-
             TestSubjectInfo info = new TestSubjectInfo();
             info.setBooking(savedBooking);
             info.setFullname(infoDTO.getFullname());
@@ -140,14 +140,14 @@ public class BookingService {
             testSubjectInfoRepository.save(info);
         }
 
-        try{
+        try {
             createResult(savedBooking);
         } catch (RuntimeException e) {
             throw new RuntimeException(e);
         }
 
         try {
-            emailService.sendBookingConfirmationEnglish(customer.getEmail(),savedBooking);
+            emailService.sendBookingConfirmationEnglish(customer.getEmail(), savedBooking);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -158,30 +158,60 @@ public class BookingService {
             System.out.println(e.getMessage());
         }
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("booking", savedBooking);
+        // ✅ Trả về BookingResponseDTO
+        BookingResponseDTO response = new BookingResponseDTO();
+        response.setBookingId(savedBooking.getBookingId());
+        response.setPaymentCode(savedBooking.getPaymentCode());
+        response.setCollectionMethod(savedBooking.getCollectionMethod());
+        response.setPaymentMethod(savedBooking.getPaymentMethod());
+        response.setAppointmentTime(savedBooking.getAppointmentTime());
+        response.setTimeRange(savedBooking.getTimeRange());
+        response.setStatus(savedBooking.getStatus());
+        response.setNote(savedBooking.getNote());
+        response.setCost(savedBooking.getCost());
+        response.setMediationMethod(savedBooking.getMediationMethod());
+        response.setAdditionalCost(savedBooking.getAdditionalCost());
+        response.setTotalCost(savedBooking.getTotalCost());
+        response.setExpressService(savedBooking.isExpressService());
+        response.setAddress(savedBooking.getAddress());
+        response.setKitID(savedBooking.getBioKit().getKitID());
+        response.setServiceID(savedBooking.getService().getServiceId());
+        response.setCustomerID(savedBooking.getCustomer().getCustomerID());
+        response.setCustomerName(savedBooking.getCustomer().getFullName());
 
-        // ✅ Chỉ sinh QR nếu là Bank
-        String payment = savedBooking.getPaymentMethod();
-//        if (payment != null && payment.trim().equalsIgnoreCase("Qr")) {
-//            String qrUrl = qrService.generatedQRUrl(savedBooking.getBookingId());
-//            System.out.println("✅ QR URL Generated: " + qrUrl); // LOG RẤT QUAN TRỌNG
-//            result.put("qrUrl", qrUrl);
-//        }
-
-        if (payment != null && payment.trim().equalsIgnoreCase("VNPAY")) {
+        if ("VNPAY".equalsIgnoreCase(savedBooking.getPaymentMethod())) {
             String clientIp = request.getRemoteAddr();
             String vnpUrl = vnPayService.createVNPayUrl(
                     savedBooking.getPaymentCode(),
                     Math.round(savedBooking.getTotalCost()),
-                    clientIp
+                    clientIp,savedBooking.getBookingId(),
+                    savedBooking.isExpressService()
             );
-            result.put("vnpUrl", vnpUrl);
-            System.out.println("✅ Generated VNPay URL: " + vnpUrl);
+            response.setVnpUrl(vnpUrl);
         }
 
+        if ("QR".equalsIgnoreCase(savedBooking.getPaymentMethod())) {
+            String qrUrl = qrService.generatedQRUrl(savedBooking.getBookingId());
+            response.setQrCode(qrUrl);
+        }
 
-        return result;
+        List<TestSubjectInfoDTO> subjectDTOs = testSubjectInfoRepository.findByBooking(savedBooking).stream()
+                .map(subject -> {
+                    TestSubjectInfoDTO dtoSub = new TestSubjectInfoDTO();
+                    dtoSub.setFullname(subject.getFullname());
+                    dtoSub.setDateOfBirth(subject.getDateOfBirth());
+                    dtoSub.setGender(subject.getGender());
+                    dtoSub.setPhone(subject.getPhone());
+                    dtoSub.setEmail(subject.getEmail());
+                    dtoSub.setRelationship(subject.getRelationship());
+                    dtoSub.setSampleType(subject.getSampleType());
+                    dtoSub.setIdNumber(subject.getIdNumber());
+                    return dtoSub;
+                }).collect(Collectors.toList());
+
+        response.setTestSubjects(subjectDTOs);
+
+        return response;
     }
 
 

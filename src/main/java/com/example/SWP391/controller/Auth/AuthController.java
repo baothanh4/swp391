@@ -227,6 +227,7 @@ public class AuthController {
                 response.put("token", token);
                 response.put("refreshToken", token);
                 response.put("id", account.getAccountID());
+                response.put("customerID",account.getCustomer().getCustomerID());
                 response.put("username", account.getUsername());
                 response.put("fullName", name);
                 response.put("name", name);

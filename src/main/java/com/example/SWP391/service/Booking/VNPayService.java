@@ -21,7 +21,7 @@ import java.util.*;
 
 @Service
 public class VNPayService {
-    public String createVNPayUrl(String orderID, long amount, String clientIp) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
+    public String createVNPayUrl(String orderID, long amount, String clientIp,int bookingID,boolean expressService) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         LocalDateTime createDate = LocalDateTime.now();
         String formattedCreateDate = createDate.format(formatter);
@@ -32,7 +32,10 @@ public class VNPayService {
         String tmnCode = "305JF59T";
         String secretKey = "59PJT7JAH0G371AXJT8SMG6S7W3WBF5V";
         String vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-
+        String returnFrontendUrl = "http://localhost:5173/booking";
+        String returnUrl = returnFrontendUrl
+                + "?returnFrom=vnpay"
+                + "&bookingId" + bookingID;
 
         String currCode = "VND";
         Map<String, String> vnpParams = new TreeMap<>();
@@ -45,8 +48,8 @@ public class VNPayService {
         vnpParams.put("vnp_OrderInfo", "Thanh toan cho ma GD: " + orderID);
         vnpParams.put("vnp_OrderType", "other");
         vnpParams.put("vnp_Amount", (int) amount + "00");
-//    vnpParams.put("vnp_ReturnUrl", returnUrl);
-        vnpParams.put("vnp_ReturnUrl", "https://fap.fpt.edu.vn?orderID=" + orderID);
+           vnpParams.put("vnp_ReturnUrl", returnUrl);
+//        vnpParams.put("vnp_ReturnUrl", "https://fap.fpt.edu.vn?orderID=" + orderID);
         vnpParams.put("vnp_CreateDate", formattedCreateDate);
         vnpParams.put("vnp_IpAddr", "localhost");
 

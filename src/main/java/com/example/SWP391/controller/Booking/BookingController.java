@@ -1,6 +1,7 @@
 package com.example.SWP391.controller.Booking;
 
 import com.example.SWP391.DTO.EntityDTO.BookingDTO;
+import com.example.SWP391.DTO.EntityDTO.BookingResponseDTO;
 import com.example.SWP391.entity.Booking.Booking;
 import com.example.SWP391.repository.BookingRepository.BookingRepository;
 import com.example.SWP391.service.Booking.BookingService;
@@ -42,16 +43,15 @@ public class BookingController {
             @RequestBody BookingDTO bookingDTO,
             HttpServletRequest request) {
         try {
-            Map<String, Object> result = bookingService.createBookingFromDTO2(
+            BookingResponseDTO response = bookingService.createBookingFromDTO2(
                     bookingDTO, serviceID, customerID, request);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Internal Error: " + e.getMessage());
         }
     }
-
     // ✅ Chuyển từ Entity -> DTO
     public BookingDTO convertDTO(Booking booking) {
         BookingDTO bookingDTO = new BookingDTO();
