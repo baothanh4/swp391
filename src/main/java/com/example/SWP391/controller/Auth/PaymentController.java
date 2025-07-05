@@ -60,12 +60,12 @@ public class PaymentController {
         return ResponseEntity.ok("QR payment confirmed");
     }
 
-    @PostMapping("/vnpay")
-    public ResponseEntity<?> createVNPay(@RequestBody VNPayRequest req, HttpServletRequest request) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
-        String clientIp = request.getRemoteAddr();
-        String url = vnPayService.createVNPayUrl(req.getPaymentCode(), req.getTotalCost(), clientIp);
-        return ResponseEntity.ok(Map.of("vnpUrl", url));
-    }
+//    @PostMapping("/vnpay")
+//    public ResponseEntity<?> createVNPay(@RequestBody VNPayRequest req, HttpServletRequest request) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
+//        String clientIp = request.getRemoteAddr();
+//        String url = vnPayService.createVNPayUrl(req.getPaymentCode(), req.getTotalCost(), clientIp);
+//        return ResponseEntity.ok(Map.of("vnpUrl", url));
+//    }
 
     @GetMapping("/vnpay-return")
     public ResponseEntity<String> handleVnpayReturn(HttpServletRequest request) {
