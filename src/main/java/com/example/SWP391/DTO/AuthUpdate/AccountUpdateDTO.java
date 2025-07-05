@@ -23,4 +23,5 @@ public class AccountUpdateDTO {
 
     private String role;
     private boolean enabled;
+    private String fullname;
 }
