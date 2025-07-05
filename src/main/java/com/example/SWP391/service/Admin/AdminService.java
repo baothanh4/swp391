@@ -119,6 +119,9 @@ public class AdminService {
 
         Account account = optionalAccount.get();
 
+        if(update.getFullname()!=null && !update.getFullname().isBlank()){
+            account.setFullname(update.getFullname());
+        }
         // Nếu muốn bắt buộc các trường thì validate ở đây
         if (update.getPassword() != null && !update.getPassword().isBlank()) {
             account.setPassword(update.getPassword());
