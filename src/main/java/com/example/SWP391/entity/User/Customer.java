@@ -2,10 +2,11 @@ package com.example.SWP391.entity.User;
 
 import com.example.SWP391.entity.Feedback;
 import com.example.SWP391.entity.Otp.Account;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import net.minidev.json.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
 @Entity
 @Setter
 @Getter
+@JsonIgnoreProperties({"feedbackList", "hibernateLazyInitializer", "handler"})
 public class Customer {
 
     @Id
@@ -30,6 +32,6 @@ public class Customer {
     private String address;
     private Integer gender;
     @JsonIgnore
-    @OneToMany(mappedBy = "customer",cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "customer",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Feedback> feedbackList;
 }
