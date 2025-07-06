@@ -35,7 +35,8 @@ public class VNPayService {
         String returnFrontendUrl = "http://localhost:5173/booking";
         String returnUrl = returnFrontendUrl
                 + "?returnFrom=vnpay"
-                + "&bookingId" + bookingID;
+                + "&paid=true"
+                + "&bookingId=" + bookingID;
 
         String currCode = "VND";
         Map<String, String> vnpParams = new TreeMap<>();
