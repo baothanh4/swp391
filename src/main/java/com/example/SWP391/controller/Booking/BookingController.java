@@ -68,6 +68,7 @@ public class BookingController {
         bookingDTO.setTotalCost(booking.getTotalCost());
         bookingDTO.setExpressService(booking.isExpressService());
         bookingDTO.setAddress(booking.getAddress());
+        bookingDTO.setPaymentCode(booking.getPaymentCode());
 
         if (booking.getBioKit() != null) {
             bookingDTO.setKitID(booking.getBioKit().getKitID());

@@ -27,7 +27,7 @@ public class BookingDTO {
 
     private boolean expressService;
     private String address;
-
+    private String paymentCode;
     private String kitID;         // dùng String nếu BioKit có ID kiểu chuỗi như K001
     private String serviceID;
     private String customerID;
