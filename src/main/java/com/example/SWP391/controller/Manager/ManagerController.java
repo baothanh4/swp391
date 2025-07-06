@@ -76,6 +76,7 @@ public class ManagerController {
         report.setAppointmentTime(assigned.getAppointmentTime());
         report.setCustomerName(assigned.getCustomerName());
         report.setBookingID(booking.getBookingId());
+        report.setAppointmentDate(booking.getAppointmentTime());
         report.setStatus("Pending");
         report.setNote("");
         report.setStaff(staff1);
@@ -178,6 +179,7 @@ public class ManagerController {
         reportDTO.setAppointmentTime(report.getAppointmentTime());
         reportDTO.setCustomerName(report.getCustomerName());
         reportDTO.setNote(report.getNote());
+        reportDTO.setAppointmentDate(report.getAppointmentDate());
         reportDTO.setStatus(report.getStatus());
         reportDTO.setAssignedID(report.getBookingAssigned().getAssignedID());
         reportDTO.setManagerID(report.getManager().getManagerID());

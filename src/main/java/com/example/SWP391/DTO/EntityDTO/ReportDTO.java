@@ -2,6 +2,8 @@ package com.example.SWP391.DTO.EntityDTO;
 
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 public class ReportDTO {
     private int reportID;
@@ -13,4 +15,5 @@ public class ReportDTO {
     private String managerID;
     private String staffID;
     private int bookingID;
+    private LocalDate appointmentDate;
 }

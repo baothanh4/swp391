@@ -30,6 +30,9 @@
         @Column(name = "Status")
         private String status;
 
+        @Column(name ="AppointmentDate")
+        private LocalDate appointmentDate;
+
         @Column(name = "Note", columnDefinition = "TEXT")
         private String note;
 
