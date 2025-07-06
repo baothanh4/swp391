@@ -136,17 +136,34 @@ public class CustomerController {
         return slotDTO;
     }
 
-    public CustomerDTO converToDTO(Customer customer){
-        CustomerDTO customerDTO=new CustomerDTO();
+    public CustomerDTO converToDTO(Customer customer) {
+        CustomerDTO customerDTO = new CustomerDTO();
         customerDTO.setFullName(customer.getFullName());
         customerDTO.setDob(customer.getDob());
         customerDTO.setEmail(customer.getEmail());
         customerDTO.setPhone(customer.getPhone());
         customerDTO.setAddress(customer.getAddress());
         customerDTO.setGender(customer.getGender());
-        if(customer.getAccount()!=null){
+        if (customer.getAccount() != null) {
             customerDTO.setCreateAt(customer.getAccount().getCreateAt());
         }
+
+        // ✅ Mapping feedback list
+        if (customer.getFeedbackList() != null) {
+            List<FeedbackDTO> feedbackDTOList = customer.getFeedbackList().stream().map(fb -> {
+                FeedbackDTO feedbackDTO = new FeedbackDTO();
+                feedbackDTO.setCustomerID(fb.getCustomer().getCustomerID());
+                feedbackDTO.setBookingID(fb.getBooking().getBookingId());
+                feedbackDTO.setTitle(fb.getTitle());
+                feedbackDTO.setContent(fb.getContent());
+                feedbackDTO.setRating(fb.getRating());
+                feedbackDTO.setCreateAt(fb.getCreateAt());
+                return feedbackDTO;
+            }).collect(Collectors.toList());
+
+            customerDTO.setFeedbackList(feedbackDTOList);
+        }
+
         return customerDTO;
     }
 
