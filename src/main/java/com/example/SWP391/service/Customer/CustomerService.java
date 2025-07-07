@@ -1,6 +1,5 @@
 package com.example.SWP391.service.Customer;
 
-
 import com.example.SWP391.DTO.AuthUpdate.UpdateRequestDTO;
 import com.example.SWP391.DTO.EntityDTO.CustomerDTO;
 import com.example.SWP391.DTO.EntityDTO.FeedbackDTO;
@@ -13,9 +12,12 @@ import com.example.SWP391.repository.UserRepository.AccountRepository;
 import com.example.SWP391.repository.UserRepository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // Thêm import này
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CustomerService {
@@ -23,6 +25,7 @@ public class CustomerService {
     @Autowired private CustomerRepository cusRepo;
     @Autowired BookingRepository bookingRepository;
     @Autowired FeedbackRepository feedbackRepository;
+
     public Customer updateCustomer(String customerId, UpdateRequestDTO request){
         Customer customer=cusRepo.findById(customerId).orElseThrow(() -> new RuntimeException("Customer not found"));
 
@@ -55,6 +58,7 @@ public class CustomerService {
 
         return cusRepo.save(customer);
     }
+
     public void createFeedback(int bookingID,String customerID,FeedbackDTO dto){
         Booking booking=bookingRepository.findById(bookingID).orElseThrow(()->new IllegalArgumentException("Booking not found"));
 
@@ -69,7 +73,7 @@ public class CustomerService {
         }
 
         if(!"COMPLETED".equalsIgnoreCase(booking.getStatus())){
-            throw new IllegalStateException("Only comleted booking can be reviewed");
+            throw new IllegalStateException("Only completed booking can be reviewed");
         }
 
         Feedback feedback=new Feedback();
@@ -85,6 +89,9 @@ public class CustomerService {
 
     }
 
+    /**
+     * Mapping Customer sang CustomerDTO KHÔNG có feedbackList
+     */
     public CustomerDTO converToDTO(Customer customer){
         CustomerDTO customerDTO=new CustomerDTO();
         customerDTO.setFullName(customer.getFullName());
@@ -93,6 +100,40 @@ public class CustomerService {
         customerDTO.setPhone(customer.getPhone());
         customerDTO.setAddress(customer.getAddress());
         customerDTO.setGender(customer.getGender());
+        return customerDTO;
+    }
+
+    /**
+     * Mapping Customer sang CustomerDTO CÓ feedbackList
+     * Hàm này cần được gọi khi session Hibernate còn mở (bên trong @Transactional hoặc fetch join)
+     */
+    @Transactional
+    public CustomerDTO convertToDTOWithFeedback(String customerId) {
+        Customer customer = cusRepo.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        CustomerDTO customerDTO = new CustomerDTO();
+        customerDTO.setFullName(customer.getFullName());
+        customerDTO.setDob(customer.getDob());
+        customerDTO.setEmail(customer.getEmail());
+        customerDTO.setPhone(customer.getPhone());
+        customerDTO.setAddress(customer.getAddress());
+        customerDTO.setGender(customer.getGender());
+
+        // Mapping feedbackList
+        if (customer.getFeedbackList() != null) {
+            List<FeedbackDTO> feedbackDTOList = customer.getFeedbackList().stream().map(feedback -> {
+                FeedbackDTO dto = new FeedbackDTO();
+                dto.setTitle(feedback.getTitle());
+                dto.setContent(feedback.getContent());
+                dto.setRating(feedback.getRating());
+                dto.setCreateAt(feedback.getCreateAt());
+                // Có thể set thêm các trường khác nếu FeedbackDTO có
+                return dto;
+            }).collect(Collectors.toList());
+            customerDTO.setFeedbackList(feedbackDTOList);
+        }
+
         return customerDTO;
     }
 }
