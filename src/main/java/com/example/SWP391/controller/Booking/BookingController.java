@@ -52,6 +52,13 @@ public class BookingController {
             return ResponseEntity.internalServerError().body("Internal Error: " + e.getMessage());
         }
     }
+    @PatchMapping("/{bookingID}/status")
+    public ResponseEntity<?> UpdateStatus(@PathVariable(name = "bookingID") int bookingID){
+        Booking booking=bookingRepository.findById(bookingID).orElseThrow(()->new IllegalArgumentException("Booking not found"));
+        booking.setStatus("Is paid");
+        bookingRepository.save(booking);
+        return ResponseEntity.ok("Update status successfully");
+    }
     // ✅ Chuyển từ Entity -> DTO
     public BookingDTO convertDTO(Booking booking) {
         BookingDTO bookingDTO = new BookingDTO();

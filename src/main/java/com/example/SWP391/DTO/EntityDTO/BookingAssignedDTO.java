@@ -12,6 +12,7 @@ public class BookingAssignedDTO {
     private String staffName;
     private LocalDateTime lastUpdate;
     private String appointmentTime;
+    private String appointmentDate;
     private String serviceType;
     private String status;
 }

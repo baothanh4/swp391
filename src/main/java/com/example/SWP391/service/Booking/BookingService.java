@@ -195,6 +195,7 @@ public class BookingService {
             response.setQrCode(qrUrl);
         }
 
+
         List<TestSubjectInfoDTO> subjectDTOs = testSubjectInfoRepository.findByBooking(savedBooking).stream()
                 .map(subject -> {
                     TestSubjectInfoDTO dtoSub = new TestSubjectInfoDTO();
@@ -248,6 +249,7 @@ public class BookingService {
         assigned.setServiceType(saved.getService().getType());
         assigned.setStatus(saved.getStatus());
         assigned.setAppointmentTime(saved.getTimeRange());
+        assigned.setAppointmentDate(saved.getAppointmentTime());
         assigned.setAssignedStaff(null);
         bookingAssignedRepository.save(assigned);
         return saved;

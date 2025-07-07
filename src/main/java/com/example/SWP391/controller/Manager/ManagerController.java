@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -44,39 +45,53 @@ public class ManagerController {
     @Autowired FeedbackRepository feedbackRepository;
 
     @PatchMapping("/assign-staff/{assignedId}")
-    public ResponseEntity<?> assignStaff(@PathVariable(name = "assignedId") Long assignedId, @RequestBody AssignRequest assignRequest) {
-        // ✅ Tìm Staff và Manager
+    public ResponseEntity<?> assignStaff(@PathVariable(name = "assignedId") Long assignedId,
+                                         @RequestBody AssignRequest assignRequest) {
+
+        // ✅ 1. Lấy Staff và Manager
         Staff staff1 = staffRepository.findById(assignRequest.getStaffID())
                 .orElseThrow(() -> new RuntimeException("StaffID not found"));
+
         Manager manager = managerRepository.findById(assignRequest.getManagerID())
                 .orElseThrow(() -> new RuntimeException("Manager not found"));
 
-        // ✅ Tìm thông tin BookingAssigned
+        // ✅ 2. Tìm thông tin BookingAssigned
         BookingAssigned assigned = bookingAssignedRepository.findById(assignedId)
                 .orElseThrow(() -> new IllegalArgumentException("Booking assigned not found"));
 
-        // ✅ Gán Staff vào BookingAssigned và Booking
+        // ✅ 3. Kiểm tra nếu staff đã được phân công trong cùng ngày
+        LocalDate assignDate = assigned.getAppointmentDate(); // appointmentDate = ngày lấy mẫu
+        List<BookingAssigned> existingAssignments = bookingAssignedRepository
+                .findByStaffAndAppointmentDate(staff1.getStaffID(), assignDate);
+
+        if (!existingAssignments.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body("Nhân viên đã được phân công vào ngày " + assignDate);
+        }
+
+        // ✅ 4. Gán Staff và Manager vào BookingAssigned
         assigned.setAssignedStaff(staff1.getFullName());
         assigned.setStaff(staff1);
         assigned.setManager(manager);
 
+        // ✅ 5. Gán staff vào Booking
         Booking booking = assigned.getBooking();
         booking.setStaff(staff1);
 
-        // ✅ Cập nhật trạng thái nhân viên
-        staff1.setAvaliable(false); // Đánh dấu đã được phân công
+        // ✅ 6. Đánh dấu staff không còn khả dụng
+        staff1.setAvaliable(false);
 
-        // ✅ Lưu các thay đổi
+        // ✅ 7. Lưu thay đổi
         bookingRepository.save(booking);
         staffRepository.save(staff1);
         bookingAssignedRepository.save(assigned);
 
-        // ✅ Tạo mới Report
+        // ✅ 8. Tạo Report mới
         Report report = new Report();
-        report.setAppointmentTime(assigned.getAppointmentTime());
+        report.setAppointmentTime(assigned.getAppointmentTime()); // khung giờ (String)
+        report.setAppointmentDate(assigned.getAppointmentDate()); // ngày
         report.setCustomerName(assigned.getCustomerName());
         report.setBookingID(booking.getBookingId());
-        report.setAppointmentDate(booking.getAppointmentTime());
         report.setStatus("Pending");
         report.setNote("");
         report.setStaff(staff1);
@@ -84,7 +99,7 @@ public class ManagerController {
         report.setBookingAssigned(assigned);
         reportRepository.save(report);
 
-        // ✅ Gán Staff cho Result nếu có
+        // ✅ 9. Cập nhật Result nếu có
         Optional<Result> resultOpt = resultRepository.findByBooking(booking);
         if (resultOpt.isPresent()) {
             Result result = resultOpt.get();
@@ -93,8 +108,10 @@ public class ManagerController {
             resultRepository.save(result);
         }
 
+        // ✅ 10. Trả về kết quả
         return ResponseEntity.ok("Assigned successfully");
     }
+
 
     @PatchMapping("/kit/{KitID}")
     public ResponseEntity<?> updateKitQuantity(@PathVariable(name="KitID") String kitID, @RequestBody BioKitDTO bioKit){
