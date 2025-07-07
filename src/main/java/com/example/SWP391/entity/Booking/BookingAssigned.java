@@ -31,6 +31,9 @@ public class BookingAssigned {
     @Column(name = "AppointmentTime")
     private String appointmentTime;
 
+    @Column(name = "AppointmentDate")
+    private LocalDate appointmentDate;
+
     @OneToOne
     @JoinColumn(name = "BookingID",nullable = false)
     private Booking booking;
