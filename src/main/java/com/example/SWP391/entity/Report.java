@@ -36,6 +36,9 @@
         @Column(name = "Note", columnDefinition = "TEXT")
         private String note;
 
+        @Column(name = "IsApproved")
+        private Boolean isApproved;
+
         //  Gắn report với nhân viên đã viết báo cáo
         @ManyToOne
         @JoinColumn(name = "StaffID")

@@ -2,6 +2,7 @@ package com.example.SWP391.controller.Manager;
 
 import com.example.SWP391.DTO.AuthRequest.AssignRequest;
 import com.example.SWP391.DTO.AuthRequest.ChangePasswordDTO;
+import com.example.SWP391.DTO.AuthRequest.ReportRequestDTO;
 import com.example.SWP391.DTO.AuthUpdate.UpdateRequestDTO;
 import com.example.SWP391.DTO.EntityDTO.*;
 import com.example.SWP391.entity.*;
@@ -91,8 +92,9 @@ public class ManagerController {
         report.setAppointmentTime(assigned.getAppointmentTime()); // khung giờ (String)
         report.setAppointmentDate(assigned.getAppointmentDate()); // ngày
         report.setCustomerName(assigned.getCustomerName());
+        report.setIsApproved(false);
         report.setBookingID(booking.getBookingId());
-        report.setStatus("Pending");
+        report.setStatus("");
         report.setNote("");
         report.setStaff(staff1);
         report.setManager(manager);
@@ -159,6 +161,13 @@ public class ManagerController {
         account.setPassword(dto.getNewPassword());
         accountRepository.save(account);
         return ResponseEntity.ok("Password changed successfully");
+    }
+    @PatchMapping("/{reportID}/report")
+    public ResponseEntity<?> updateReport(@PathVariable(name = "reportID") int reportID, ReportRequestDTO dto){
+        Report report=reportRepository.findById(reportID).orElseThrow(()->new RuntimeException("Report not found"));
+        report.setIsApproved(dto.getIsApproved());
+        reportRepository.save(report);
+        return ResponseEntity.ok("Updated completed");
     }
     @PatchMapping("/my-account/{id}")
     public ResponseEntity<?> updateInfo(@PathVariable("id") String managerID, @RequestBody UpdateRequestDTO dto) {
@@ -245,6 +254,8 @@ public class ManagerController {
         dto.setStaffName(staff);
         dto.setLastUpdate(assigned.getLastUpdate());
         dto.setServiceType(booking.getService().getType());
+        dto.setAppointmentTime(booking.getTimeRange());
+        dto.setAppointmentDate(assigned.getAppointmentDate());
         dto.setStatus(booking.getStatus());
 
         return dto;

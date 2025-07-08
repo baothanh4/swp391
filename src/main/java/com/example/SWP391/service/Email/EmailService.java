@@ -9,6 +9,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
+
 @Service
 public class EmailService {
     @Autowired
@@ -20,7 +22,7 @@ public class EmailService {
         String customerName = booking.getCustomer().getFullName();
         String serviceName = booking.getService().getName();
         String kitName = booking.getBioKit().getName();
-        String date = booking.getAppointmentTime().toString();
+        String date = booking.getAppointmentTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         String timeRange = booking.getTimeRange();
         String collectionMethod = booking.getCollectionMethod();
         String address = booking.getAddress();
@@ -29,6 +31,7 @@ public class EmailService {
         float cost = booking.getCost();
         boolean isExpress = booking.isExpressService();
         float expressFee = isExpress ? booking.getService().getExpressPrice() : 0f;
+        float mediationFee = getMediationFee(collectionMethod, isExpress);
         float additionalCost = booking.getAdditionalCost();
         float totalCost = booking.getTotalCost();
 
@@ -52,6 +55,7 @@ public class EmailService {
                 <tr><td><strong>Payment Method:</strong></td><td>%s</td></tr>
                 <tr><td><strong>Booking Code:</strong></td><td>%s</td></tr>
                 %s
+                <tr><td><strong>Mediation Fee:</strong></td><td>%.0f VND</td></tr>
                 <tr><td><strong>Service Cost:</strong></td><td>%.0f VND</td></tr>
                 <tr><td><strong>Additional Fee:</strong></td><td>%.0f VND</td></tr>
                 <tr><td><strong>Total Cost:</strong></td><td><strong style='color:blue;'>%.0f VND</strong></td></tr>
@@ -75,6 +79,7 @@ public class EmailService {
                 paymentMethod,
                 paymentCode,
                 expressRow,
+                mediationFee,
                 cost,
                 additionalCost,
                 totalCost
@@ -86,6 +91,16 @@ public class EmailService {
             System.err.println("❌ Failed to send email: " + e.getMessage());
         }
     }
+    private float getMediationFee(String method, boolean isExpress) {
+        if (method == null) return 0;
+        return switch (method.trim().toLowerCase()) {
+            case "staffarrival" -> isExpress ? 0f : 500_000f;
+            case "postal" -> 250_000f;
+            case "walkin" -> 0f;
+            default -> 0f;
+        };
+    }
+
 
 
     public void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {

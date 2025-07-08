@@ -128,8 +128,11 @@ public class StaffController {
     public ResponseEntity<?> updateReport(@PathVariable(name = "reportID") int reportID,@RequestBody ReportDTO dto){
         try {
             Report report1=reportRepository.findById(reportID).orElseThrow(()->new IllegalArgumentException("Report not found"));
+            Staff staff=staffRepository.findById(report1.getStaff().getStaffID()).orElseThrow(()->new RuntimeException("Staff not found"));
             report1.setStatus(dto.getStatus());
             report1.setNote(dto.getNote());
+            staff.setAvaliable(true);
+            staffRepository.save(staff);
             reportRepository.save(report1);
             return ResponseEntity.ok("Update completely");
         }catch (Exception e){

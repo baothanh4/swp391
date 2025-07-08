@@ -45,6 +45,5 @@ public class TestSubjectInfo {
     @Column(name = "IdNumber")
     private String idNumber; // CCCD/CMND
 
-    @OneToMany(mappedBy = "testSubjectInfo", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TestSubjectInfoHistory> histories;
+
 }
