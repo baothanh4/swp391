@@ -121,18 +121,18 @@ public class CustomerService {
         customerDTO.setGender(customer.getGender());
 
         // Mapping feedbackList
-        if (customer.getFeedbackList() != null) {
-            List<FeedbackDTO> feedbackDTOList = customer.getFeedbackList().stream().map(feedback -> {
-                FeedbackDTO dto = new FeedbackDTO();
-                dto.setTitle(feedback.getTitle());
-                dto.setContent(feedback.getContent());
-                dto.setRating(feedback.getRating());
-                dto.setCreateAt(feedback.getCreateAt());
-                // Có thể set thêm các trường khác nếu FeedbackDTO có
-                return dto;
-            }).collect(Collectors.toList());
-            customerDTO.setFeedbackList(feedbackDTOList);
-        }
+//        if (customer.getFeedbackList() != null) {
+//            List<FeedbackDTO> feedbackDTOList = customer.getFeedbackList().stream().map(feedback -> {
+//                FeedbackDTO dto = new FeedbackDTO();
+//                dto.setTitle(feedback.getTitle());
+//                dto.setContent(feedback.getContent());
+//                dto.setRating(feedback.getRating());
+//                dto.setCreateAt(feedback.getCreateAt());
+//                // Có thể set thêm các trường khác nếu FeedbackDTO có
+//                return dto;
+//            }).collect(Collectors.toList());
+//            customerDTO.setFeedbackList(feedbackDTOList);
+//        }
 
         return customerDTO;
     }

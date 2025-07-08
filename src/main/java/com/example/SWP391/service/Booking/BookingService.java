@@ -233,7 +233,6 @@ public class BookingService {
         result.setRelationship(null);
         result.setConclusion(null);
         result.setConfidencePercentage(0);
-        result.setPdfPath(null);
         result.setAvailable(false);
         result.setCreateAt(LocalDate.now());
         result.setUpdateAt(LocalDateTime.now());

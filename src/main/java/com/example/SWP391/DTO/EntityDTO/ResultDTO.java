@@ -11,7 +11,7 @@ public class ResultDTO {
     private String relationship;
     private String conclusion;
     private float confidencePercentage;
-    private String pdfPath;
+
     private boolean isAvailable;
     private LocalDateTime updateAt;
     private LocalDate createAt;

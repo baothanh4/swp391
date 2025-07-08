@@ -9,10 +9,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**") // Cho tất cả các API
-                .allowedOrigins("http://localhost:5173") // Cho phép frontend React truy cập
+        registry.addMapping("/**")
+                .allowedOrigins("http://localhost:5173", "https://sandbox.vnpayment.vn") // thêm origin nếu cần
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true);
+                .exposedHeaders("Authorization") // nếu bạn dùng JWT
+                .allowCredentials(true)
+                .maxAge(3600);
     }
 }

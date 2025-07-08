@@ -19,5 +19,5 @@ public class CustomerDTO {
     private String address;
     private Integer gender;
     private LocalDate createAt;
-    private List<FeedbackDTO> feedbackList;
+//    private List<FeedbackDTO> feedbackList;
 }

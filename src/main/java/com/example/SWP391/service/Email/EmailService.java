@@ -100,6 +100,34 @@ public class EmailService {
             default -> 0f;
         };
     }
+    public void sendResultAvailableEmail(String toEmail, String customerName) {
+        String subject = "📢 DNA Test Result Available";
+
+        String content = String.format("""
+        <div style='font-family:sans-serif;'>
+            <h2>🧬 Your DNA Test Result is Ready</h2>
+            <p>Dear <strong>%s</strong>,</p>
+            <p>Your DNA test result is now available. Please log in to our website to view the full result.</p>
+
+            <p>
+                🔗 <a href="http://localhost:5173/login">Click here to log in</a>
+            </p>
+
+            <p>If you have any questions, please contact our support team.</p>
+
+            <hr/>
+            <p><strong>Genetix Testing Center</strong><br/>
+            Email: genetixcontactsp@gmail.com<br/>
+            Phone: 0901452366</p>
+        </div>
+        """, customerName);
+
+        try {
+            sendHtmlEmail(toEmail, subject, content);
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send result notification: " + e.getMessage());
+        }
+    }
 
 
 

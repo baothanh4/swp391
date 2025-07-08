@@ -3,14 +3,13 @@ package com.example.SWP391.controller.Customer;
 
 import com.example.SWP391.DTO.AuthRequest.ChangePasswordDTO;
 import com.example.SWP391.DTO.AuthUpdate.UpdateRequestDTO;
-import com.example.SWP391.DTO.EntityDTO.CustomerBookingDTO;
-import com.example.SWP391.DTO.EntityDTO.CustomerDTO;
-import com.example.SWP391.DTO.EntityDTO.FeedbackDTO;
-import com.example.SWP391.DTO.EntityDTO.SlotDTO;
+import com.example.SWP391.DTO.EntityDTO.*;
 import com.example.SWP391.entity.Booking.Booking;
 import com.example.SWP391.entity.Otp.Account;
+import com.example.SWP391.entity.Result;
 import com.example.SWP391.entity.Slot;
 import com.example.SWP391.repository.BookingRepository.BookingRepository;
+import com.example.SWP391.repository.BookingRepository.ResultRepository;
 import com.example.SWP391.repository.BookingRepository.SlotRepository;
 import com.example.SWP391.repository.UserRepository.AccountRepository;
 import com.example.SWP391.repository.UserRepository.CustomerRepository;
@@ -39,6 +38,9 @@ public class CustomerController {
     AccountRepository accountRepository;
     @Autowired
     SlotRepository slotRepository;
+    @Autowired
+    ResultRepository resultRepository;
+
     @PatchMapping("/my-account/{id}")
     public ResponseEntity<?> updateCustomer(@PathVariable("id") String customerId, @RequestBody UpdateRequestDTO request) {
         try {
@@ -148,23 +150,29 @@ public class CustomerController {
             customerDTO.setCreateAt(customer.getAccount().getCreateAt());
         }
 
-        // ✅ Mapping feedback list
-        if (customer.getFeedbackList() != null) {
-            List<FeedbackDTO> feedbackDTOList = customer.getFeedbackList().stream().map(fb -> {
-                FeedbackDTO feedbackDTO = new FeedbackDTO();
-                feedbackDTO.setCustomerID(fb.getCustomer().getCustomerID());
-                feedbackDTO.setBookingID(fb.getBooking().getBookingId());
-                feedbackDTO.setTitle(fb.getTitle());
-                feedbackDTO.setContent(fb.getContent());
-                feedbackDTO.setRating(fb.getRating());
-                feedbackDTO.setCreateAt(fb.getCreateAt());
-                return feedbackDTO;
-            }).collect(Collectors.toList());
 
-            customerDTO.setFeedbackList(feedbackDTOList);
-        }
 
         return customerDTO;
+    }
+    @GetMapping("/by-booking/{bookingID}")
+    public ResponseEntity<?> getResultByBooking(@PathVariable(name = "bookingID") int bookingID){
+        Optional<Result> resultOtp=resultRepository.findByBooking_BookingId(bookingID);
+
+        if(resultOtp.isEmpty()){
+            return ResponseEntity.status(404).body("Result not found");
+        }
+        Result result=resultOtp.get();
+
+        if(!result.isAvailable()){
+            return ResponseEntity.status(403).body("Result is not available");
+        }
+
+        ResultResponseDTO dto=new ResultResponseDTO();
+        dto.setRelationship(result.getRelationship());
+        dto.setConclusion(result.getConclusion());
+        dto.setConfidencePercentage(result.getConfidencePercentage());
+
+        return ResponseEntity.ok(dto);
     }
 
     public CustomerBookingDTO convertIntoDTO(Booking booking) {
