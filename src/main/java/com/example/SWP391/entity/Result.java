@@ -33,8 +33,7 @@ public class Result {
     @Column(name = "ConfidencePercentage")
     private float confidencePercentage;
 
-    @Column(name = "PdfPath")
-    private String pdfPath;
+
 
     @Column(name = "IsAvailable")
     private boolean isAvailable;

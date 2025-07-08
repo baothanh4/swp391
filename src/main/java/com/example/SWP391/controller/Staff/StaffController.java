@@ -16,9 +16,11 @@ import com.example.SWP391.repository.BookingRepository.ReportRepository;
 import com.example.SWP391.repository.BookingRepository.ResultRepository;
 import com.example.SWP391.repository.UserRepository.AccountRepository;
 import com.example.SWP391.repository.UserRepository.StaffRepository;
+import com.example.SWP391.service.Email.EmailService;
 import com.example.SWP391.service.Kit.KitTransactionService;
 import com.example.SWP391.service.Staff.UpdateBooking;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +42,7 @@ public class StaffController {
     @Autowired private AccountRepository accountRepository;
     @Autowired private ReportRepository reportRepository;
     @Autowired private ResultRepository resultRepository;
-
+    @Autowired private EmailService emailService;
     @PatchMapping("/updateBooking/{id}")
     public ResponseEntity<?> updateBooking(@PathVariable("id") int bookingID, @RequestBody BookingUpdateDTO dto){
         try {
@@ -145,17 +147,31 @@ public class StaffController {
     public ResponseEntity<?> updateResult(@PathVariable(name = "resultID") int resultID,@RequestBody ResultDTO dto){
         try {
             Result result=resultRepository.findById(resultID).orElseThrow(()->new IllegalArgumentException("Result not found"));
+
             result.setRelationship(dto.getRelationship());
             result.setConclusion(dto.getConclusion());
             result.setConfidencePercentage(dto.getConfidencePercentage());
-            result.setPdfPath(dto.getPdfPath());
             result.setAvailable(dto.isAvailable());
             result.setUpdateAt(LocalDateTime.now());
+            Booking booking=result.getBooking();
+            booking.setStatus("Completed");
+
             resultRepository.save(result);
             return ResponseEntity.ok("Update result complete");
         }catch (Exception e){
             return ResponseEntity.badRequest().body("Error:"+e.getMessage());
         }
+    }
+    @PatchMapping("/is-available/{resultID}")
+    public ResponseEntity<?> updateAvailable(@PathVariable(name = "resultID") int resultID){
+        Result result=resultRepository.findById(resultID).orElseThrow(()-> new IllegalArgumentException("Result not found"));
+        result.setAvailable(true);
+        resultRepository.save(result);
+        Booking booking= result.getBooking();
+        Customer customer=booking.getCustomer();
+
+        emailService.sendResultAvailableEmail(customer.getEmail(), customer.getFullName());
+        return ResponseEntity.ok("Update isAvailable completed");
     }
 
 
@@ -182,7 +198,7 @@ public class StaffController {
         resultDTO.setStaffID(result.getStaffID());
         resultDTO.setRelationship(result.getRelationship());
         resultDTO.setConclusion(result.getConclusion());
-        resultDTO.setPdfPath(result.getPdfPath());
+
         resultDTO.setAvailable(result.isAvailable());
         resultDTO.setUpdateAt(result.getUpdateAt());
         resultDTO.setCreateAt(result.getCreateAt());
@@ -215,6 +231,7 @@ public class StaffController {
         staffDTO.setGender(staff.getGender());
         return staffDTO;
     }
+
 
 
 }

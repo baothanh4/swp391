@@ -79,7 +79,7 @@ public class ManagerController {
         // ✅ 5. Gán staff vào Booking
         Booking booking = assigned.getBooking();
         booking.setStaff(staff1);
-        booking.setStatus("Awaiting Sample");
+        booking.setStatus("Booking Confirm");
 
 
 
@@ -128,6 +128,7 @@ public class ManagerController {
         // ✅ 10. Trả về kết quả
         return ResponseEntity.ok("Assigned successfully");
     }
+
 
 
     @PatchMapping("/kit/{KitID}")
