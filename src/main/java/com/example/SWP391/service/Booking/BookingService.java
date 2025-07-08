@@ -219,9 +219,9 @@ public class BookingService {
     private float getMediationFee(String method, boolean isExpress) {
         if (method == null) return 0;
         return switch (method.trim().toLowerCase()) {
-            case "staffarrival" -> isExpress ? 0f : 500_000f;
-            case "postal" -> 250_000f;
-            case "walkin" -> 0f;
+            case "staff-collection" -> isExpress ? 0f : 500_000f;
+            case "postal-delivery" -> 250_000f;
+            case "walk-in" -> 0f;
             default -> 0f;
         };
     }

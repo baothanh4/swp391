@@ -74,10 +74,14 @@ public class ManagerController {
         assigned.setAssignedStaff(staff1.getFullName());
         assigned.setStaff(staff1);
         assigned.setManager(manager);
+        assigned.setStatus("Awaiting Sample");
 
         // ✅ 5. Gán staff vào Booking
         Booking booking = assigned.getBooking();
         booking.setStaff(staff1);
+        booking.setStatus("Awaiting Sample");
+
+
 
         // ✅ 6. Đánh dấu staff không còn khả dụng
         staff1.setAvaliable(false);
@@ -88,17 +92,28 @@ public class ManagerController {
         bookingAssignedRepository.save(assigned);
 
         // ✅ 8. Tạo Report mới
-        Report report = new Report();
-        report.setAppointmentTime(assigned.getAppointmentTime()); // khung giờ (String)
-        report.setAppointmentDate(assigned.getAppointmentDate()); // ngày
+        Optional<Report> existingReport = reportRepository.findByBookingAssigned(assigned);
+
+        Report report;
+        if (existingReport.isPresent()) {
+            // Nếu đã có Report → cập nhật lại
+            report = existingReport.get();
+        } else {
+            // Chưa có → tạo mới
+            report = new Report();
+            report.setBookingAssigned(assigned); // rất quan trọng
+        }
+
+        report.setAppointmentTime(assigned.getAppointmentTime());
+        report.setAppointmentDate(assigned.getAppointmentDate());
         report.setCustomerName(assigned.getCustomerName());
         report.setIsApproved(false);
         report.setBookingID(booking.getBookingId());
-        report.setStatus("");
+        report.setStatus("Pending");
         report.setNote("");
         report.setStaff(staff1);
         report.setManager(manager);
-        report.setBookingAssigned(assigned);
+
         reportRepository.save(report);
 
         // ✅ 9. Cập nhật Result nếu có
