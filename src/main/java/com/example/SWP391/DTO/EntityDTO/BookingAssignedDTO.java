@@ -2,6 +2,7 @@ package com.example.SWP391.DTO.EntityDTO;
 
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -12,7 +13,7 @@ public class BookingAssignedDTO {
     private String staffName;
     private LocalDateTime lastUpdate;
     private String appointmentTime;
-    private String appointmentDate;
+    private LocalDate appointmentDate;
     private String serviceType;
     private String status;
 }

@@ -33,10 +33,8 @@ public class VNPayService {
         String secretKey = "59PJT7JAH0G371AXJT8SMG6S7W3WBF5V";
         String vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
         String returnFrontendUrl = "http://localhost:5173/booking";
-        String returnUrl = returnFrontendUrl
-                + "?returnFrom=vnpay"
-                + "&paid=true"
-                + "&bookingId=" + bookingID;
+        String returnUrl = returnFrontendUrl;
+
 
         String currCode = "VND";
         Map<String, String> vnpParams = new TreeMap<>();
@@ -49,7 +47,7 @@ public class VNPayService {
         vnpParams.put("vnp_OrderInfo", "Thanh toan cho ma GD: " + orderID);
         vnpParams.put("vnp_OrderType", "other");
         vnpParams.put("vnp_Amount", (int) amount + "00");
-           vnpParams.put("vnp_ReturnUrl", returnUrl);
+        vnpParams.put("vnp_ReturnUrl", returnUrl);
 //        vnpParams.put("vnp_ReturnUrl", "https://fap.fpt.edu.vn?orderID=" + orderID);
         vnpParams.put("vnp_CreateDate", formattedCreateDate);
         vnpParams.put("vnp_IpAddr", "localhost");
@@ -77,6 +75,7 @@ public class VNPayService {
             urlBuilder.append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.toString()));
             urlBuilder.append("&");
         }
+        System.out.println("VNPay returnUrl = " + returnUrl);
         return urlBuilder.deleteCharAt(urlBuilder.length() - 1).toString();
     }
 

@@ -182,7 +182,7 @@ public class BookingService {
         if ("VNPAY".equalsIgnoreCase(savedBooking.getPaymentMethod())) {
             String clientIp = request.getRemoteAddr();
             String vnpUrl = vnPayService.createVNPayUrl(
-                    savedBooking.getPaymentCode(),
+                    savedBooking.getService().getServiceId(),
                     Math.round(savedBooking.getTotalCost()),
                     clientIp,savedBooking.getBookingId(),
                     savedBooking.isExpressService()
