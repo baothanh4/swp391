@@ -16,4 +16,5 @@ public class ReportDTO {
     private String staffID;
     private int bookingID;
     private LocalDate appointmentDate;
+    private boolean isApproved;
 }

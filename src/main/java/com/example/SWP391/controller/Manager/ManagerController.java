@@ -79,7 +79,7 @@ public class ManagerController {
         // ✅ 5. Gán staff vào Booking
         Booking booking = assigned.getBooking();
         booking.setStaff(staff1);
-        booking.setStatus("Booking Confirm");
+        booking.setStatus("Awaiting Sample");
 
 
 
@@ -223,6 +223,7 @@ public class ManagerController {
         reportDTO.setNote(report.getNote());
         reportDTO.setAppointmentDate(report.getAppointmentDate());
         reportDTO.setStatus(report.getStatus());
+        reportDTO.setApproved(report.getIsApproved());
         reportDTO.setAssignedID(report.getBookingAssigned().getAssignedID());
         reportDTO.setManagerID(report.getManager().getManagerID());
         reportDTO.setStaffID(report.getStaff().getStaffID());

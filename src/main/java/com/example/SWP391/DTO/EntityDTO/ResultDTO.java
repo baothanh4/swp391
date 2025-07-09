@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class ResultDTO {
+    private int resultID;
     private int bookingID;
     private String relationship;
     private String conclusion;
