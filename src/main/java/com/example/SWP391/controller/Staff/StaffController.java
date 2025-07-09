@@ -152,6 +152,7 @@ public class StaffController {
             result.setConclusion(dto.getConclusion());
             result.setConfidencePercentage(dto.getConfidencePercentage());
             result.setAvailable(dto.isAvailable());
+            result.setMatchingPercentage(dto.getMatchingPercentage());
             result.setUpdateAt(LocalDateTime.now());
             Booking booking=result.getBooking();
             booking.setStatus("Completed");
@@ -209,6 +210,7 @@ public class StaffController {
         resultDTO.setAvailable(result.isAvailable());
         resultDTO.setUpdateAt(result.getUpdateAt());
         resultDTO.setCreateAt(result.getCreateAt());
+        resultDTO.setMatchingPercentage(result.getMatchingPercentage());
         resultDTO.setBookingID(result.getBooking().getBookingId());
         return resultDTO;
     }

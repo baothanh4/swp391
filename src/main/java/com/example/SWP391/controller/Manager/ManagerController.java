@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -60,15 +62,30 @@ public class ManagerController {
         BookingAssigned assigned = bookingAssignedRepository.findById(assignedId)
                 .orElseThrow(() -> new IllegalArgumentException("Booking assigned not found"));
 
-        // ✅ 3. Kiểm tra nếu staff đã được phân công trong cùng ngày
-        LocalDate assignDate = assigned.getAppointmentDate(); // appointmentDate = ngày lấy mẫu
-        List<BookingAssigned> existingAssignments = bookingAssignedRepository
-                .findByStaffAndAppointmentDate(staff1.getStaffID(), assignDate);
+        LocalDate newDate=assigned.getAppointmentDate();
+        String newTimeRange=assigned.getAppointmentTime();
 
-        if (!existingAssignments.isEmpty()) {
+
+        // ✅ 3. Kiểm tra nếu staff đã được phân công trong cùng ngày
+
+        List<BookingAssigned> existingAssignments = bookingAssignedRepository
+                .findByStaffAndAppointmentDate(staff1.getStaffID(), newDate);
+
+        boolean conflict = existingAssignments.stream()
+                .anyMatch(a ->
+                        a.getAppointmentDate().equals(newDate) &&
+                                isTimeConflict(a.getAppointmentTime(), newTimeRange)
+                );
+        if (conflict) {
             return ResponseEntity.badRequest()
-                    .body("Nhân viên đã được phân công vào ngày " + assignDate);
+                    .body("❌ Nhân viên đã được phân công vào " + newDate + " khung giờ " + newTimeRange);
         }
+
+
+//        if (!existingAssignments.isEmpty()) {
+//            return ResponseEntity.badRequest()
+//                    .body("Nhân viên đã được phân công vào ngày " + assignDate);
+//        }
 
         // ✅ 4. Gán Staff và Manager vào BookingAssigned
         assigned.setAssignedStaff(staff1.getFullName());
@@ -288,6 +305,29 @@ public class ManagerController {
         kitTransactionDTO.setReceived(kitTransaction.isReceived());
 
         return kitTransactionDTO;
+    }
+    private boolean isTimeConflict(String range1,String range2){
+        LocalTime[] r1=parseTimeRange(range1);
+        LocalTime[] r2=parseTimeRange(range2);
+        LocalTime start1=r1[0],end1=r1[1];
+        LocalTime start2=r2[0],end2=r2[1];
+
+        return !end1.isBefore(start2) && !end2.isBefore(end1);
+    }
+
+    private LocalTime[] parseTimeRange(String timeRange) {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm"); // linh hoạt với cả 1 chữ số
+            String[] parts = timeRange.replace("–", "-").split("-"); // xử lý cả dấu gạch ngang đặc biệt nếu có
+            if (parts.length != 2) {
+                throw new IllegalArgumentException("Invalid time range format");
+            }
+            LocalTime start = LocalTime.parse(parts[0].trim(), formatter);
+            LocalTime end = LocalTime.parse(parts[1].trim(), formatter);
+            return new LocalTime[]{start, end};
+        } catch (Exception e) {
+            throw new RuntimeException("❌ Invalid time format: " + timeRange + ". Expected HH:mm - HH:mm");
+        }
     }
 
 
