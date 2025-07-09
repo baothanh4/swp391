@@ -33,7 +33,8 @@ public class Result {
     @Column(name = "ConfidencePercentage")
     private float confidencePercentage;
 
-
+    @Column(name = "MatchingPercentage")
+    private String matchingPercentage;
 
     @Column(name = "IsAvailable")
     private boolean isAvailable;
