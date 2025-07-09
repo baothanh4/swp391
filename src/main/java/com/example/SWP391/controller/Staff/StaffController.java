@@ -173,6 +173,13 @@ public class StaffController {
         emailService.sendResultAvailableEmail(customer.getEmail(), customer.getFullName());
         return ResponseEntity.ok("Update isAvailable completed");
     }
+    @GetMapping("/all-result")
+    public ResponseEntity<?> getAllResult(){
+        List<Result> result=resultRepository.findAll();
+        List<ResultDTO> resultDTOS=result.stream().map(this::convertToResultDTO).collect(Collectors.toList());
+        return ResponseEntity.ok(resultDTOS);
+    }
+
 
 
     public OrderDTO convertDTO(Booking booking) {
@@ -198,7 +205,7 @@ public class StaffController {
         resultDTO.setStaffID(result.getStaffID());
         resultDTO.setRelationship(result.getRelationship());
         resultDTO.setConclusion(result.getConclusion());
-
+        resultDTO.setResultID(result.getResultId());
         resultDTO.setAvailable(result.isAvailable());
         resultDTO.setUpdateAt(result.getUpdateAt());
         resultDTO.setCreateAt(result.getCreateAt());
