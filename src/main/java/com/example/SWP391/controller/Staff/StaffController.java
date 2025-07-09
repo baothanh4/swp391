@@ -221,6 +221,7 @@ public class StaffController {
         reportDTO.setCustomerName(report.getCustomerName());
         reportDTO.setNote(report.getNote());
         reportDTO.setStatus(report.getStatus());
+        reportDTO.setApproved(report.getIsApproved());
         reportDTO.setAppointmentDate(report.getAppointmentDate());
         reportDTO.setAssignedID(report.getBookingAssigned().getAssignedID());
         reportDTO.setManagerID(report.getManager().getManagerID());
