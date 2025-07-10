@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 @Data
 public class StaffDTO {
-
+    private String staffID;
     private String fullname;
     private LocalDate DOB;
     private String email;
