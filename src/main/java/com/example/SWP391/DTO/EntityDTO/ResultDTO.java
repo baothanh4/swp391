@@ -13,6 +13,7 @@ public class ResultDTO {
     private String conclusion;
     private float confidencePercentage;
     private String matchingPercentage;
+    private LocalDate deadline;
     private boolean isAvailable;
     private LocalDateTime updateAt;
     private LocalDate createAt;
