@@ -236,6 +236,12 @@ public class BookingService {
         result.setAvailable(false);
         result.setCreateAt(LocalDate.now());
         result.setUpdateAt(LocalDateTime.now());
+
+        com.example.SWP391.entity.Service service=saved.getService();
+        int[] days=parseEstimateDaysFlexible(service.getEstimatedTime(), saved.isExpressService());
+        int calendarDaysToAdd=days[0];
+        LocalDate deadline=addCalendarDays(saved.getAppointmentTime(),calendarDaysToAdd);
+        result.setDeadline(deadline);
         resultRepository.save(result);
         return saved;
     }
@@ -279,4 +285,31 @@ public class BookingService {
         }
         return String.format("B%04d", nextNumber);
     }
+
+    public int[] parseEstimateDaysFlexible(String estimatedTime,boolean express){
+        if(estimatedTime==null || estimatedTime.isBlank()){
+            return new int[]{5,5};
+        }
+
+        String normalized=estimatedTime.toLowerCase().replaceAll("[^0-9\\- ]", "").trim();
+
+        String[] parts=normalized.split("-");
+        try{
+            int min,max;
+            if(parts.length==2){
+                min=Integer.parseInt(parts[0].trim());
+                max=Integer.parseInt(parts[1].trim());
+            }else{
+                min=max=Integer.parseInt(parts[0].trim());
+            }
+
+            return express?new int[]{min,min}:new int[]{max,max};
+        }catch (NumberFormatException e){
+            return new int[]{5,5};
+        }
+    }
+    private LocalDate addCalendarDays(LocalDate startDate, int daysToAdd) {
+        return startDate.plusDays(daysToAdd);
+    }
+
 }

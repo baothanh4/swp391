@@ -210,6 +210,7 @@ public class StaffController {
         resultDTO.setAvailable(result.isAvailable());
         resultDTO.setUpdateAt(result.getUpdateAt());
         resultDTO.setCreateAt(result.getCreateAt());
+        resultDTO.setDeadline(result.getDeadline());
         resultDTO.setMatchingPercentage(result.getMatchingPercentage());
         resultDTO.setBookingID(result.getBooking().getBookingId());
         return resultDTO;

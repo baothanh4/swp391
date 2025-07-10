@@ -42,6 +42,9 @@ public class Result {
     @Column(name = "CreateAt")
     private LocalDate createAt;
 
+    @Column(name="Deadline")
+    private LocalDate deadline;
+
     @Column(name = "UpdateAt")
     private LocalDateTime updateAt;
 
