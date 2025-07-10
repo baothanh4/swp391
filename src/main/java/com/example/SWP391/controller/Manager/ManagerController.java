@@ -173,6 +173,13 @@ public class ManagerController {
         ManagerDTO dto = convertToManagerDTO(manager);
         return ResponseEntity.ok(dto);
     }
+    @GetMapping("all-staff")
+    public ResponseEntity<?> getAllStaff(){
+        List<Staff> staff=staffRepository.findAll();
+        List<StaffDTO> staffDTOS=staff.stream().map(this::convertToStaffDTO).collect(Collectors.toList());
+        return  ResponseEntity.ok(staffDTOS);
+
+    }
     @PatchMapping("/reset-password/{id}")
     public ResponseEntity<?> resetPassword(@PathVariable(name = "id") String managerID, @RequestBody ChangePasswordDTO dto){
         Manager manager=managerRepository.findById(managerID).orElse(null);
@@ -246,6 +253,18 @@ public class ManagerController {
         reportDTO.setStaffID(report.getStaff().getStaffID());
         reportDTO.setBookingID(report.getBookingID());
         return reportDTO;
+    }
+    public StaffDTO convertToStaffDTO(Staff staff){
+
+        StaffDTO dto=new StaffDTO();
+        dto.setStaffID(staff.getStaffID());
+        dto.setFullname(staff.getFullName());
+        dto.setDOB(staff.getDOB());
+        dto.setEmail(staff.getEmail());
+        dto.setPhone(staff.getPhone());
+        dto.setGender(staff.getGender());
+        dto.setAddress(staff.getAddress());
+        return dto;
     }
     public FeedbackDTO convertToFeedbackDTO(Feedback feedback){
         FeedbackDTO dto=new FeedbackDTO();
