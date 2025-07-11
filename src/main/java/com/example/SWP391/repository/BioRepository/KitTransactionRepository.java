@@ -8,4 +8,5 @@ import java.util.Optional;
 
 public interface KitTransactionRepository extends JpaRepository<KitTransaction, Long> {
     Optional<KitTransaction>findByBooking(Booking booking);
+    void deleteByBooking(Booking booking);
 }

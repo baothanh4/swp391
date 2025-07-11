@@ -13,6 +13,7 @@ import com.example.SWP391.repository.BookingRepository.ResultRepository;
 import com.example.SWP391.repository.BookingRepository.SlotRepository;
 import com.example.SWP391.repository.UserRepository.AccountRepository;
 import com.example.SWP391.repository.UserRepository.CustomerRepository;
+import com.example.SWP391.service.Booking.BookingService;
 import com.example.SWP391.service.Customer.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,7 @@ public class CustomerController {
     SlotRepository slotRepository;
     @Autowired
     ResultRepository resultRepository;
+    @Autowired BookingService bookingService;
 
     @PatchMapping("/my-account/{id}")
     public ResponseEntity<?> updateCustomer(@PathVariable("id") String customerId, @RequestBody UpdateRequestDTO request) {
@@ -121,12 +123,16 @@ public class CustomerController {
         List<SlotDTO> slotDTOS=slots.stream().map(this::convertToSlotDTO).collect(Collectors.toList());
         return ResponseEntity.ok(slotDTOS);
     }
-    @PatchMapping("/cancel-booking/{bookingID}")
-    public ResponseEntity<?> getCancel(@PathVariable(name = "bookingID") int bookingID){
-        Booking booking=bookingRepository.findById(bookingID).orElseThrow(()->new IllegalArgumentException("Booking not found"));
-        booking.setStatus("Cancel");
-        bookingRepository.save(booking);
-        return ResponseEntity.ok("Cancel Complete");
+
+    @DeleteMapping("/bookings/{id}/cancel")
+    public ResponseEntity<?> cancelBooking(@PathVariable(name = "id") int bookingID){
+
+        try {
+            bookingService.cancelBooking(bookingID);
+            return ResponseEntity.ok("Booking cancelled and related data deleted");
+        }catch (RuntimeException e){
+            return ResponseEntity.badRequest().body("Error:"+e.getMessage());
+        }
     }
 
     public SlotDTO convertToSlotDTO(Slot slot){

@@ -214,6 +214,39 @@ public class BookingService {
 
         return response;
     }
+    @Transactional
+    public void cancelBooking(int bookingID){
+        Booking booking=bookingRepo.findById(bookingID).orElseThrow(()->new IllegalArgumentException("Booking not found"));
+
+        if ("Booking Confirmed".equalsIgnoreCase(booking.getStatus())) {
+            throw new RuntimeException("Cannot cancel a confirmed booking.");
+        }
+
+        if("VNPAY".equalsIgnoreCase(booking.getPaymentMethod())){
+            try {
+                String customerName=booking.getCustomer().getFullName();
+                String email=booking.getCustomer().getEmail();
+                String paymentCode= booking.getPaymentCode();
+                String appointmentTime=booking.getAppointmentTime().toString();
+                String serviceName=booking.getService().getName();
+
+                String htmlContent=emailService.buildRefundEmail(customerName,paymentCode,appointmentTime,serviceName);
+                emailService.sendHtmlEmail(email,"Refund cost by VNPay",htmlContent);
+            }catch (Exception e){
+                throw new RuntimeException("Failed to send refund email:"+e.getMessage());
+            }
+        }
+        booking.setStatus("Cancelled");
+        bookingRepo.save(booking);
+
+        resultRepository.deleteByBooking(booking);
+
+        bookingAssignedRepository.deleteByBooking(booking);
+
+        kitTransactionRepo.deleteByBooking(booking);
+
+
+    }
 
 
     private float getMediationFee(String method, boolean isExpress) {
@@ -311,5 +344,6 @@ public class BookingService {
     private LocalDate addCalendarDays(LocalDate startDate, int daysToAdd) {
         return startDate.plusDays(daysToAdd);
     }
+
 
 }

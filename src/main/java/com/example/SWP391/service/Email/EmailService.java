@@ -139,4 +139,97 @@ public class EmailService {
         helper.setText(htmlContent, true);
         mailSender.send(message);
     }
+
+    public String buildRefundEmail(String customerName, String paymentCode, String appointmentDate, String serviceName) {
+        return """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Refund Notification</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                body {
+                    margin: 0;
+                    padding: 0;
+                    font-family: 'Segoe UI', sans-serif;
+                    background-color: #f4f4f4;
+                }
+                .container {
+                    max-width: 600px;
+                    margin: 40px auto;
+                    background-color: #fff;
+                    padding: 30px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                }
+                h2 {
+                    text-align: center;
+                    color: #2c3e50;
+                }
+                .content {
+                    color: #333;
+                    line-height: 1.7;
+                    margin-top: 20px;
+                }
+                .highlight {
+                    color: #e74c3c;
+                    font-weight: bold;
+                }
+                .info {
+                    background-color: #f9f9f9;
+                    padding: 15px;
+                    border-left: 5px solid #3498db;
+                    margin: 20px 0;
+                    border-radius: 5px;
+                }
+                .footer {
+                    text-align: center;
+                    font-size: 13px;
+                    color: #888;
+                    margin-top: 30px;
+                }
+                ul {
+                    padding-left: 20px;
+                }
+                @media (max-width: 600px) {
+                    .container {
+                        padding: 20px;
+                        margin: 20px;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h2>Refund Notification (Hoàn tiền qua VNPay)</h2>
+                <div class="content">
+                    <p>Xin chào <strong>%s</strong>,</p>
+
+                    <p>Yêu cầu huỷ lịch xét nghiệm của bạn đã được xác nhận thành công.</p>
+
+                    <div class="info">
+                        <p>Hệ thống sẽ xử lý <span class="highlight">hoàn tiền trong vòng 72 giờ</span> thông qua VNPay.</p>
+                        <p><strong>Mã thanh toán:</strong> %s</p>
+                        <p><strong>Ngày đặt lịch:</strong> %s</p>
+                        <p><strong>Dịch vụ:</strong> %s</p>
+                    </div>
+
+                    <p>Nếu bạn có bất kỳ câu hỏi hoặc cần hỗ trợ, vui lòng liên hệ với chúng tôi qua:</p>
+                    <ul>
+                        <li>Email: <a href="mailto:genetixcontactsp@gmail.com">genetixcontactsp@gmail.com</a></li>
+                        <li>Số điện thoại: 0901 452 366</li>
+                    </ul>
+
+                    <p>Cảm ơn bạn đã tin tưởng sử dụng dịch vụ tại Genetix Testing Center.</p>
+                </div>
+
+                <div class="footer">
+                    &copy; 2025 Genetix Testing Center. All rights reserved.
+                </div>
+            </div>
+        </body>
+        </html>
+        """.formatted(customerName, paymentCode, appointmentDate, serviceName);
+    }
 }
