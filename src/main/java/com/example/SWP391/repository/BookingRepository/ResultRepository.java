@@ -13,4 +13,5 @@ public interface ResultRepository extends JpaRepository<Result,Integer> {
     Optional<Result> findByBooking(Booking booking);
     List<Result> findByStaffID(String staffID);
     Optional<Result> findByBooking_BookingId(int bookingID);
+    void deleteByBooking(Booking booking);
 }

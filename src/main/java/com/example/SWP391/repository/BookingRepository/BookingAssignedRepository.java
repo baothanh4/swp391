@@ -18,4 +18,5 @@ public interface BookingAssignedRepository extends JpaRepository<BookingAssigned
             "AND ba.appointmentDate = :date")
     List<BookingAssigned> findByStaffAndAppointmentDate(@Param("staffID") String staffID,
                                                         @Param("date") LocalDate date);
+    void deleteByBooking(Booking booking);
 }
