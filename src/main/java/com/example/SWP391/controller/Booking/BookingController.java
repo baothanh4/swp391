@@ -3,6 +3,7 @@ package com.example.SWP391.controller.Booking;
 import com.example.SWP391.DTO.EntityDTO.BookingDTO;
 import com.example.SWP391.DTO.EntityDTO.BookingResponseDTO;
 import com.example.SWP391.entity.Booking.Booking;
+import com.example.SWP391.entity.Booking.BookingAssigned;
 import com.example.SWP391.repository.BookingRepository.BookingRepository;
 import com.example.SWP391.service.Booking.BookingService;
 import com.example.SWP391.service.Booking.QRService;
@@ -55,7 +56,8 @@ public class BookingController {
     @PatchMapping("/{bookingID}/status")
     public ResponseEntity<?> UpdateStatus(@PathVariable(name = "bookingID") int bookingID){
         Booking booking=bookingRepository.findById(bookingID).orElseThrow(()->new IllegalArgumentException("Booking not found"));
-        booking.setStatus("Is paid");
+
+        booking.setStatus("Payment Confirmed");
         bookingRepository.save(booking);
         return ResponseEntity.ok("Update status successfully");
     }

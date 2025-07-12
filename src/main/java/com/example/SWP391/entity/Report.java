@@ -36,7 +36,7 @@
         @Column(name = "Note", columnDefinition = "TEXT")
         private String note;
 
-        @Column(name = "IsApproved")
+        @Column(name = "IsApproved",nullable = false)
         private Boolean isApproved;
 
         //  Gắn report với nhân viên đã viết báo cáo

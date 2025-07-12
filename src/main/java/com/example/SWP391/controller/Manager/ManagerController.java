@@ -91,12 +91,12 @@ public class ManagerController {
         assigned.setAssignedStaff(staff1.getFullName());
         assigned.setStaff(staff1);
         assigned.setManager(manager);
-        assigned.setStatus("Booking Confirm");
+        assigned.setStatus("Booking Confirmed");
 
         // ✅ 5. Gán staff vào Booking
         Booking booking = assigned.getBooking();
         booking.setStaff(staff1);
-        booking.setStatus("Booking Confirm");
+        booking.setStatus("Booking Confirmed");
 
 
 

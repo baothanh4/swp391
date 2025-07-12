@@ -232,4 +232,46 @@ public class EmailService {
         </html>
         """.formatted(customerName, paymentCode, appointmentDate, serviceName);
     }
+    public String buildCashRefundEmail(String customerName, String appointmentDate, String serviceName) {
+        return """
+        <html>
+        <head>
+            <style>
+                body { font-family: 'Segoe UI', sans-serif; background-color: #f9f9f9; padding: 20px; }
+                .email-container {
+                    max-width: 600px;
+                    margin: auto;
+                    background-color: #ffffff;
+                    padding: 30px;
+                    border-radius: 10px;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                }
+                .content { color: #333; line-height: 1.6; }
+                .highlight { color: #27ae60; font-weight: bold; }
+                .footer { margin-top: 30px; font-size: 13px; color: #888; text-align: center; }
+            </style>
+        </head>
+        <body>
+            <div class="email-container">
+                <h2>Refund Notification</h2>
+                <div class="content">
+                    <p>Dear <strong>%s</strong>,</p>
+                    <p>Your booking has been successfully canceled.</p>
+                    <p>Please visit our clinic to receive your <span class="highlight">cash refund</span>.</p>
+                    <p><strong>Appointment Date:</strong> %s</p>
+                    <p><strong>Service:</strong> %s</p>
+                    <p>If you have any questions, please contact us:</p>
+                    <ul>
+                        <li>Email: genetixcontactsp@gmail.com</li>
+                        <li>Phone: 0901452366</li>
+                    </ul>
+                </div>
+                <div class="footer">
+                    &copy; Genetix Testing Center. All rights reserved.
+                </div>
+            </div>
+        </body>
+        </html>
+        """.formatted(customerName, appointmentDate, serviceName);
+    }
 }

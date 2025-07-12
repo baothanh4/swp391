@@ -26,14 +26,15 @@ public class VNPayService {
         LocalDateTime createDate = LocalDateTime.now();
         String formattedCreateDate = createDate.format(formatter);
 //    Orders order = createOrder(orderRequest);
-        String orderIdVnPay = UUID.randomUUID().toString().substring(0, 6);
+//        String orderIdVnPay = UUID.randomUUID().toString().substring(0, 6);
 
 
         String tmnCode = "305JF59T";
         String secretKey = "59PJT7JAH0G371AXJT8SMG6S7W3WBF5V";
         String vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
         String returnFrontendUrl = "http://localhost:5173/booking";
-        String returnUrl = returnFrontendUrl;
+        String returnUrl = returnFrontendUrl+
+                "?paymentCode="+orderID;
 
 
         String currCode = "VND";
@@ -43,7 +44,7 @@ public class VNPayService {
         vnpParams.put("vnp_TmnCode", tmnCode);
         vnpParams.put("vnp_Locale", "vn");
         vnpParams.put("vnp_CurrCode", currCode);
-        vnpParams.put("vnp_TxnRef", orderIdVnPay);
+        vnpParams.put("vnp_TxnRef", orderID);
         vnpParams.put("vnp_OrderInfo", "Thanh toan cho ma GD: " + orderID);
         vnpParams.put("vnp_OrderType", "other");
         vnpParams.put("vnp_Amount", (int) amount + "00");
