@@ -78,7 +78,7 @@ public class BookingService {
         booking.setNote(dto.getNote());
         booking.setAddress(dto.getAddress());
         booking.setMediationMethod(normalizeMediationMethod(dto.getMediationMethod()));
-        booking.setStatus("Awaiting confirm");
+        booking.setStatus("Awaiting Confirmation");
         booking.setExpressService(dto.isExpressService());
         booking.setCost(cost);
         booking.setAdditionalCost(additionalCost);
@@ -182,7 +182,7 @@ public class BookingService {
         if ("VNPAY".equalsIgnoreCase(savedBooking.getPaymentMethod())) {
             String clientIp = request.getRemoteAddr();
             String vnpUrl = vnPayService.createVNPayUrl(
-                    savedBooking.getService().getServiceId(),
+                    savedBooking.getPaymentCode(),
                     Math.round(savedBooking.getTotalCost()),
                     clientIp,savedBooking.getBookingId(),
                     savedBooking.isExpressService()
@@ -222,19 +222,23 @@ public class BookingService {
             throw new RuntimeException("Cannot cancel a confirmed booking.");
         }
 
-        if("VNPAY".equalsIgnoreCase(booking.getPaymentMethod())){
-            try {
-                String customerName=booking.getCustomer().getFullName();
-                String email=booking.getCustomer().getEmail();
-                String paymentCode= booking.getPaymentCode();
-                String appointmentTime=booking.getAppointmentTime().toString();
-                String serviceName=booking.getService().getName();
+        String customerName=booking.getCustomer().getFullName();
+        String email=booking.getCustomer().getEmail();
+        String paymentCode= booking.getPaymentCode();
+        String appointmentTime=booking.getAppointmentTime().toString();
+        String serviceName=booking.getService().getName();
 
+        String paymentMethod= booking.getPaymentMethod();
+        try{
+            if("VNPAY".equalsIgnoreCase(paymentMethod)){
                 String htmlContent=emailService.buildRefundEmail(customerName,paymentCode,appointmentTime,serviceName);
-                emailService.sendHtmlEmail(email,"Refund cost by VNPay",htmlContent);
-            }catch (Exception e){
-                throw new RuntimeException("Failed to send refund email:"+e.getMessage());
+                emailService.sendHtmlEmail(email,"Refund cost via VNPay",htmlContent);
+            }else if("CASH".equalsIgnoreCase(paymentMethod)){
+                String cashContent=emailService.buildCashRefundEmail(customerName,appointmentTime,serviceName);
+                emailService.sendHtmlEmail(email,"Refund notification",cashContent);
             }
+        }catch (Exception e){
+            throw new RuntimeException("Failed to send email:"+e.getMessage());
         }
         booking.setStatus("Cancelled");
         bookingRepo.save(booking);
