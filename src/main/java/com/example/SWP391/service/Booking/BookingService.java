@@ -234,8 +234,8 @@ public class BookingService {
                 String htmlContent=emailService.buildRefundEmail(customerName,paymentCode,appointmentTime,serviceName);
                 emailService.sendHtmlEmail(email,"Refund cost via VNPay",htmlContent);
             }else if("CASH".equalsIgnoreCase(paymentMethod)){
-                String cashContent=emailService.buildCashRefundEmail(customerName,appointmentTime,serviceName);
-                emailService.sendHtmlEmail(email,"Refund notification",cashContent);
+                String cashContent=emailService.buildCancelBookingEmail(customerName,appointmentTime,serviceName);
+                emailService.sendHtmlEmail(email,"Cancelled notification",cashContent);
             }
         }catch (Exception e){
             throw new RuntimeException("Failed to send email:"+e.getMessage());

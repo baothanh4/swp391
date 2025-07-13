@@ -183,7 +183,9 @@ public class CustomerController {
 
     public CustomerBookingDTO convertIntoDTO(Booking booking) {
         CustomerBookingDTO dto = new CustomerBookingDTO();
-
+        dto.setBookingID(booking.getBookingId());
+        dto.setTotalCost(booking.getTotalCost());
+        dto.setServiceType(booking.getService().getType());
         dto.setCollectionMethod(booking.getCollectionMethod());
         dto.setAppointmentTime(booking.getAppointmentTime());
         dto.setNote(booking.getNote());
