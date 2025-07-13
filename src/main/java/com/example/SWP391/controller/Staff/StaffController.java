@@ -166,6 +166,8 @@ public class StaffController {
     @PatchMapping("/is-available/{resultID}")
     public ResponseEntity<?> updateAvailable(@PathVariable(name = "resultID") int resultID){
         Result result=resultRepository.findById(resultID).orElseThrow(()-> new IllegalArgumentException("Result not found"));
+        Booking b=bookingRepository.findById(result.getBooking().getBookingId()).orElseThrow(()->new IllegalArgumentException("Booking not found"));
+        b.setStatus("Completed");
         result.setAvailable(true);
         resultRepository.save(result);
         Booking booking= result.getBooking();
