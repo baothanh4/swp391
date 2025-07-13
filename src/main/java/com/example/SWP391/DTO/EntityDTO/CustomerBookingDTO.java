@@ -6,6 +6,9 @@ import java.time.LocalDate;
 
 @Data
 public class CustomerBookingDTO {
+    private int bookingID;
+    private float totalCost;
+    private String serviceType;
     private String collectionMethod;
     private String paymentMethod;
     private String kitName;
