@@ -6,8 +6,10 @@ import com.example.SWP391.DTO.EntityDTO.OrderDTO;
 import com.example.SWP391.entity.BioKit;
 import com.example.SWP391.entity.Booking.Booking;
 import com.example.SWP391.entity.Booking.BookingAssigned;
+import com.example.SWP391.entity.KitTransaction;
 import com.example.SWP391.entity.User.Staff;
 import com.example.SWP391.repository.BioRepository.BioKitRepository;
+import com.example.SWP391.repository.BioRepository.KitTransactionRepository;
 import com.example.SWP391.repository.BookingRepository.BookingAssignedRepository;
 import com.example.SWP391.repository.BookingRepository.BookingRepository;
 import com.example.SWP391.repository.BookingRepository.ServiceRepository;
@@ -30,6 +32,7 @@ public class UpdateBooking {
     @Autowired private ServiceRepository serviceRepository;
     @Autowired private BookingAssignedRepository bookingAssignedRepository;
     @Autowired private StaffRepository staffRepository;
+    @Autowired private KitTransactionRepository kitTransactionRepository;
 
     @Transactional
     public Booking updateBookingFromDTO(int bookingId, BookingUpdateDTO dto) throws Exception {
@@ -43,6 +46,15 @@ public class UpdateBooking {
         // Cập nhật status (nếu có)
         if (dto.getStatus() != null) {
             booking.setStatus(dto.getStatus());
+
+            if("In Progress".equalsIgnoreCase(dto.getStatus())){
+                KitTransaction kitTransaction=kitTransactionRepository.findByBooking(booking).orElseThrow(()->new IllegalArgumentException("Kit transaction not found"));
+                if(kitTransaction!=null){
+                    kitTransaction.setReceived(true);
+                    kitTransactionRepository.save(kitTransaction);
+                }
+
+            }
 
             BookingAssigned assigned = bookingAssignedRepository.findByBooking(booking);
             if (assigned != null) {
