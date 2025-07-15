@@ -238,7 +238,7 @@ public class AuthController {
                 response.put("picture", picture);
                 response.put("isEmailVerified", true);
                 response.put("createdAt", account.getCreateAt());
-
+                response.put("loginMethod", "google");
                 return ResponseEntity.ok(response);
             }
         } catch (Exception e) {
