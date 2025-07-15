@@ -172,7 +172,7 @@ public class StaffController {
         resultRepository.save(result);
         Booking booking= result.getBooking();
         Customer customer=booking.getCustomer();
-
+        bookingRepository.save(b);
         emailService.sendResultAvailableEmail(customer.getEmail(), customer.getFullName());
         return ResponseEntity.ok("Update isAvailable completed");
     }
