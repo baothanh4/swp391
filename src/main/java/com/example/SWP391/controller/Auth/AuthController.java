@@ -179,75 +179,103 @@ public class AuthController {
 
     @PostMapping("/google")
     public ResponseEntity<?> loginWithGoogle(@RequestBody Map<String, String> body) {
-        String idToken = body.get("credential");
-        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new JacksonFactory())
+        String idToken=body.get("credential");
+
+        GoogleIdTokenVerifier verifier=new GoogleIdTokenVerifier.Builder(new NetHttpTransport(),new JacksonFactory())
                 .setAudience(Collections.singletonList("26142191146-7u8f63rgtupdv8v6kv8ug307j55hjfob.apps.googleusercontent.com"))
                 .build();
-        try {
-            GoogleIdToken googleIdToken = verifier.verify(idToken);
-            if (googleIdToken != null) {
-                GoogleIdToken.Payload payload = googleIdToken.getPayload();
-                String email = payload.getEmail();
-                String name = (String) payload.get("name");
-                String picture = (String) payload.get("picture");
 
-                Account account = accountRepo.findByEmail(email);
-                if (account == null) {
-                    // Tạo mới Account
-                    account = new Account();
-                    account.setUsername(email);
-                    account.setPassword("");
-                    account.setEmail(email);
-                    account.setPhone("");
-                    account.setRole("Customer");
-                    account.setCreateAt(LocalDate.now());
-                    account.setEnabled(true);
+        try{
+            GoogleIdToken googleIdToken=verifier.verify(idToken);
+            if(googleIdToken==null){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token Google is not available");
+            }
+            GoogleIdToken.Payload payload=googleIdToken.getPayload();
+            String email= payload.getEmail();
+            String name=(String) payload.get("name");
+            String picture=(String) payload.get("picture");
+
+            //Find the email
+            Account account=accountRepo.findByEmail(email);
+
+            if(account==null){
+                account=new Account();
+                account.setUsername(email);
+                account.setPassword("");
+                account.setEmail(email);
+                account.setPhone("");
+                account.setRole("Customer");
+                account.setCreateAt(LocalDate.now());
+                account.setEnabled(true);
+                account.setFullname(name);
+
+
+                Customer customer=new Customer();
+                customer.setCustomerID(generateCustomId("CUST",customerRepository.count()));
+                customer.setFullName(name);
+                customer.setEmail(email);
+                customer.setPhone("");
+                customer.setAddress("");
+                customer.setGender(null);
+                customer.setAccount(account);
+
+                account.setCustomer(customer);
+
+                accountRepo.save(account);
+                customerRepository.save(customer);
+            }else{
+                if(account.getFullname()==null || account.getFullname().isEmpty()){
                     account.setFullname(name);
-                    account = accountRepo.save(account);
+                }
 
-                    // Tạo mới Customer
-                    Customer customer = new Customer();
-                    customer.setCustomerID(generateCustomId("CUST", customerRepository.count()));
+                if(account.getCustomer()==null){
+                    Customer customer=new Customer();
+                    customer.setCustomerID(generateCustomId("CUST",customerRepository.count()));
                     customer.setFullName(name);
                     customer.setEmail(email);
-                    customer.setPhone("");
+                    customer.setPhone(account.getPhone()!=null? account.getPhone() : "");
                     customer.setAddress("");
                     customer.setGender(null);
                     customer.setDob(null);
                     customer.setAccount(account);
+
+                    account.setCustomer(customer);
                     customerRepository.save(customer);
                 }
-
-                // ✅ Tạo JWT token cho Google login
-                String token = jwtTokenProvider.generateToken(account.getUsername());
-
-                String role = account.getRole().toUpperCase();
-
-                Map<String, Object> response = new HashMap<>();
-                response.put("token", token);
-                response.put("refreshToken", token);
-                response.put("id", account.getAccountID());
-                response.put("customerID",account.getCustomer().getCustomerID());
-                response.put("username", account.getUsername());
-                response.put("fullName", name);
-                response.put("name", name);
-                response.put("email", email);
-                response.put("phone", account.getPhone());
-                response.put("role", role);
-                response.put("avatar", picture);
-                response.put("picture", picture);
-                response.put("isEmailVerified", true);
-                response.put("createdAt", account.getCreateAt());
-                response.put("loginMethod", "google");
-                return ResponseEntity.ok(response);
+                accountRepo.save(account);
             }
-        } catch (Exception e) {
+            Customer customer=account.getCustomer();
+            if(customer==null){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Account that not link the customer");
+            }
+            String token= jwtTokenProvider.generateToken(account.getUsername());
+            String role= account.getRole().toUpperCase();
+
+            Map<String,Object>response=new HashMap<>();
+            response.put("token",token);
+            response.put("refreshToken",token);
+            response.put("id",account.getAccountID());
+            response.put("customerID",customer.getCustomerID());
+            response.put("username",account.getUsername());
+            response.put("fullname",account.getFullname());
+            response.put("email",account.getEmail());
+            response.put("phone",account.getPhone());
+            response.put("role",role);
+            response.put("avatar",picture);
+            response.put("picture",picture);
+            response.put("isEmailVerified",true);
+            response.put("createAt",account.getCreateAt());
+            response.put("loginMethod", "google");
+
+            return ResponseEntity.ok(response);
+        }catch (Exception e){
             e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error login by Google");
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
     }
 
-        private String generateCustomId(String prefix, long count) {
+
+    private String generateCustomId(String prefix, long count) {
         return String.format("%s%03d", prefix, count + 1);
     }
 
