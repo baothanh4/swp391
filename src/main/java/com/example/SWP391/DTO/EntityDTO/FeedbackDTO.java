@@ -12,5 +12,5 @@ public class FeedbackDTO {
     private String content;
     private int rating;
     private LocalDate createAt;
-
+    private String customerName;
 }
