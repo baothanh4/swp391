@@ -268,6 +268,7 @@ public class ManagerController {
     }
     public FeedbackDTO convertToFeedbackDTO(Feedback feedback){
         FeedbackDTO dto=new FeedbackDTO();
+        dto.setCustomerName(feedback.getCustomer().getFullName());
         dto.setTitle(feedback.getTitle());
         dto.setContent(feedback.getContent());
         dto.setRating(feedback.getRating());
