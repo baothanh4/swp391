@@ -2,6 +2,7 @@ package com.example.SWP391.controller.Auth;
 
 import com.example.SWP391.DTO.AuthRegister.AuthRegisterDTO;
 import com.example.SWP391.DTO.AuthRequest.AuthRequestDTO;
+import com.example.SWP391.DTO.AuthRequest.EmailRequestDTO;
 import com.example.SWP391.DTO.AuthRequest.OtpRequestDTO;
 import com.example.SWP391.DTO.AuthRequest.ResetPasswordRequestDTO;
 import com.example.SWP391.entity.Otp.Account;
@@ -11,6 +12,7 @@ import com.example.SWP391.entity.Otp.OtpVerification;
 import com.example.SWP391.repository.UserRepository.*;
 import com.example.SWP391.repository.OtpRepository.OtpVerificationRepository;
 import com.example.SWP391.security.JwtTokenProvider;
+import com.example.SWP391.service.Email.EmailService;
 import com.example.SWP391.service.ResetPassword.PasswordResetService;
 import com.example.SWP391.service.Customer.RegisterService;
 import com.example.SWP391.service.System.SystemLogService;
@@ -67,6 +69,7 @@ public class AuthController {
     @Autowired private AdminRepository adminRepository;
     @Autowired private StaffRepository staffRepository;
     @Autowired private ManagerRepository managerRepository;
+    @Autowired private EmailService emailService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequestDTO request, HttpServletRequest httpRequest) {
@@ -154,20 +157,22 @@ public class AuthController {
 
             OtpVerification otp = otpOpt.get();
 
+
+
             if (!otp.getOtp().equals(request.getOtp())) {
                 return ResponseEntity.badRequest().body("Mã OTP không hợp lệ.");
             }
 
-            if (otp.getExpirationTime().isBefore(LocalDateTime.now())) {
+            if (otp.getExpirationTime() == null || otp.getExpirationTime().isBefore(LocalDateTime.now())) {
                 return ResponseEntity.badRequest().body("Mã OTP đã hết hạn.");
             }
 
-// Kích hoạt tài khoản
+
             Account account = accountRepo.findByEmail(request.getEmail());
             account.setEnabled(true);
             accountRepo.save(account);
 
-// Xóa OTP
+
             otpRepo.delete(otp);
 
             return ResponseEntity.ok("Tài khoản đã được kích hoạt thành công.");
@@ -176,6 +181,50 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi server");
         }
     }
+    @PostMapping("/resend-otp")
+    public ResponseEntity<?> resendOtp(@RequestBody EmailRequestDTO dto){
+        try {
+            String email = dto.getEmail();
+
+            Account account = accountRepo.findByEmail(email);
+            if (account == null) {
+                return ResponseEntity.badRequest().body("Email không tồn tại.");
+            }
+
+            if (account.isEnabled()) {
+                return ResponseEntity.badRequest().body("Tài khoản đã được kích hoạt.");
+            }
+
+
+            Optional<OtpVerification> existingOtpOpt = otpRepo.findTopByEmailOrderByIdDesc(email);
+
+
+            if (existingOtpOpt.isPresent()) {
+                OtpVerification existingOtp = existingOtpOpt.get();
+                if (existingOtp.getExpirationTime()!=null && existingOtp.getExpirationTime().isAfter(LocalDateTime.now())) {
+                    otpRepo.delete(existingOtp);
+                }
+            }
+
+
+            String otpCode = String.format("%06d", new Random().nextInt(999999));
+
+            OtpVerification newOtp = new OtpVerification();
+            newOtp.setEmail(email);
+            newOtp.setOtp(otpCode);
+            newOtp.setExpirationTime(LocalDateTime.now().plusMinutes(5));
+
+            otpRepo.save(newOtp);
+
+            emailService.sendOtpEmail(email, otpCode);
+
+            return ResponseEntity.ok("OTP mới đã được gửi đến email.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi gửi lại OTP");
+        }
+    }
+
 
     @PostMapping("/google")
     public ResponseEntity<?> loginWithGoogle(@RequestBody Map<String, String> body) {

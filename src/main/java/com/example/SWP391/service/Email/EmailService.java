@@ -272,4 +272,12 @@ public class EmailService {
     </html>
     """.formatted(customerName, appointmentDate, serviceName);
     }
+    public void sendOtpEmail(String to, String otp) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("genetix.noreply@gmail.com");
+        message.setTo(to);
+        message.setSubject("Confirm to register account");
+        message.setText("Your OTP code is : " + otp + "\nExpirated in 5 minutes.");
+        mailSender.send(message);
+    }
 }
