@@ -201,7 +201,7 @@ public class AuthController {
 
             if (existingOtpOpt.isPresent()) {
                 OtpVerification existingOtp = existingOtpOpt.get();
-                if (existingOtp.getExpirationTime()!=null && existingOtp.getExpirationTime().isAfter(LocalDateTime.now())) {
+                if (existingOtp.getExpirationTime() == null || existingOtp.getExpirationTime().isBefore(LocalDateTime.now())) {
                     otpRepo.delete(existingOtp);
                 }
             }
