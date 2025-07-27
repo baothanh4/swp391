@@ -201,10 +201,13 @@ public class AuthController {
 
             if (existingOtpOpt.isPresent()) {
                 OtpVerification existingOtp = existingOtpOpt.get();
-                if (existingOtp.getExpirationTime() == null || existingOtp.getExpirationTime().isBefore(LocalDateTime.now())) {
+                if (existingOtp.getExpirationTime().isAfter(LocalDateTime.now())) {
+                    return ResponseEntity.badRequest().body("OTP hiện tại vẫn còn hiệu lực. Vui lòng kiểm tra lại email.");
+                } else {
                     otpRepo.delete(existingOtp);
                 }
             }
+
 
 
             String otpCode = String.format("%06d", new Random().nextInt(999999));
