@@ -273,11 +273,26 @@ public class EmailService {
     """.formatted(customerName, appointmentDate, serviceName);
     }
     public void sendOtpEmail(String to, String otp) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("genetix.noreply@gmail.com");
-        message.setTo(to);
-        message.setSubject("Confirm to register account");
-        message.setText("Your OTP code is : " + otp + "\nExpirated in 5 minutes.");
-        mailSender.send(message);
+        String subject = "🔐 Your OTP Verification Code";
+        String htmlContent = """
+        <div style='font-family:sans-serif;'>
+            <h2>Welcome to Genetix!</h2>
+            <p>Thank you for registering. Your OTP code is:</p>
+            <h1 style='color:#2c3e50;'>%s</h1>
+            <p>This code will expire in <strong>5 minutes</strong>.</p>
+            <p>If you didn’t request this code, please ignore this email.</p>
+            <hr/>
+            <p>Genetix Testing Center<br/>
+            Email: genetixcontactsp@gmail.com<br/>
+            Phone: 0901452366</p>
+        </div>
+    """.formatted(otp);
+
+        try {
+            sendHtmlEmail(to, subject, htmlContent);
+        } catch (MessagingException e) {
+            System.err.println("❌ Failed to send OTP email: " + e.getMessage());
+        }
     }
+
 }
