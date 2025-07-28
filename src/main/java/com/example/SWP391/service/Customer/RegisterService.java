@@ -8,6 +8,7 @@ import com.example.SWP391.entity.Otp.OtpVerification;
 import com.example.SWP391.repository.UserRepository.AccountRepository;
 import com.example.SWP391.repository.UserRepository.CustomerRepository;
 import com.example.SWP391.repository.OtpRepository.OtpVerificationRepository;
+import com.example.SWP391.service.Email.EmailService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
@@ -31,6 +32,7 @@ public class RegisterService {
 
     @Autowired
     private OtpVerificationRepository otpRepo;
+    @Autowired private EmailService emailService;
     public String register(@Valid AuthRegisterDTO dto) {
         if (accountRepo.existsByUsername(dto.getUsername())) {
             return "Username was exist!";
@@ -79,7 +81,12 @@ public class RegisterService {
         otpRepo.save(otpVerification);
 
         // Gửi email
-        sendOtpEmail(dto.getEmail(), otp);
+        try {
+            emailService.sendOtpEmail(dto.getEmail(),otp);
+        }catch (Exception e){
+            e.getMessage();
+        }
+
 
         return "Registration successful. An OTP has been sent to your email. Please verify it to activate your account.";
     }
@@ -88,14 +95,7 @@ public class RegisterService {
         int otp = 100000 + random.nextInt(900000); // mã 6 chữ số
         return String.valueOf(otp);
     }
-    private void sendOtpEmail(String to, String otp) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("genetix.noreply@gmail.com");
-        message.setTo(to);
-        message.setSubject("Confirm to register account");
-        message.setText("Your OTP code is : " + otp + "\nExpirated in 5 minutes.");
-        mailSender.send(message);
-    }
+
 
     private String generateCustomerID() {
         int suffix = 1;
