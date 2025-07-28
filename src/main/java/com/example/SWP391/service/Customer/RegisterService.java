@@ -72,7 +72,7 @@ public class RegisterService {
 
         // === Tạo mã OTP và gửi email ===
         String otp = generateOtp();
-        LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(5);
+        LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(1);
 
         OtpVerification otpVerification = new OtpVerification();
         otpVerification.setEmail(dto.getEmail());

@@ -70,19 +70,19 @@ QR & VNPay Integration	React Signature	PDF Generation
 
 📦 Cài đặt & Chạy thử (Developer)
 1. Backend
-bash
-Sao chép
-Chỉnh sửa
-cd backend
-./mvnw spring-boot:run
+   bash
+   Sao chép
+   Chỉnh sửa
+   cd backend
+   ./mvnw spring-boot:run
 2. Frontend
-bash
-Sao chép
-Chỉnh sửa
-cd frontend
-npm install
-npm run dev
-📧 Liên hệ hỗ trợ
-Email: support@genetix-dna.vn
+   bash
+   Sao chép
+   Chỉnh sửa
+   cd frontend
+   npm install
+   npm run dev
+   📧 Liên hệ hỗ trợ
+   Email: support@genetix-dna.vn
 
 Hotline: 1900 9999

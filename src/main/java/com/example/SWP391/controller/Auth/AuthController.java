@@ -107,7 +107,7 @@ public class AuthController {
             response.put("role", cleanRole);
             response.put("isEmailVerified", account.isEnabled());
 
-            // ✅ Add specific ID based on role
+
             switch (cleanRole) {
                 case "CUSTOMER" -> {
                     customerRepository.findByAccount(account)
