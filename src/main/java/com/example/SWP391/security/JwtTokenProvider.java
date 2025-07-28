@@ -1,6 +1,10 @@
 package com.example.SWP391.security;
 
 import com.example.SWP391.service.Customer.CustomUserDetailsService;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -10,9 +14,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,7 +34,20 @@ public class JwtTokenProvider {
     public JwtTokenProvider(CustomUserDetailsService customUserDetailsService) {
         this.customUserDetailsService = customUserDetailsService;
     }
+    public GoogleIdToken.Payload verifyGoogleToken(String idTokenString) throws GeneralSecurityException, IOException {
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                GoogleNetHttpTransport.newTrustedTransport(),
+                GsonFactory.getDefaultInstance())
+                .setAudience(Collections.singletonList("YOUR_GOOGLE_CLIENT_ID"))
+                .build();
 
+        GoogleIdToken idToken = verifier.verify(idTokenString);
+        if (idToken != null) {
+            return idToken.getPayload();
+        } else {
+            throw new RuntimeException("Invalid ID token");
+        }
+    }
     public String generateToken(String username) {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
         Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
