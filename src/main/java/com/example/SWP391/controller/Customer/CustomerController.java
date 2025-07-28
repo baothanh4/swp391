@@ -108,13 +108,13 @@ public class CustomerController {
             @RequestBody FeedbackDTO dto) {
         try {
             customerService.createFeedback(bookingID, customerID, dto);
-            return ResponseEntity.ok("✅ Feedback submitted successfully");
+            return ResponseEntity.ok(" Feedback submitted successfully");
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❌ Not Found: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(" Not Found: " + e.getMessage());
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("❌ Conflict: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(" Conflict: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("❌ Error: " + e.getMessage());
+            return ResponseEntity.badRequest().body(" Error: " + e.getMessage());
         }
     }
     @GetMapping("/all-slot-time")

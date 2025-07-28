@@ -89,9 +89,7 @@ public class CustomerService {
 
     }
 
-    /**
-     * Mapping Customer sang CustomerDTO KHÔNG có feedbackList
-     */
+
     public CustomerDTO converToDTO(Customer customer){
         CustomerDTO customerDTO=new CustomerDTO();
         customerDTO.setFullName(customer.getFullName());
@@ -103,10 +101,7 @@ public class CustomerService {
         return customerDTO;
     }
 
-    /**
-     * Mapping Customer sang CustomerDTO CÓ feedbackList
-     * Hàm này cần được gọi khi session Hibernate còn mở (bên trong @Transactional hoặc fetch join)
-     */
+
     @Transactional
     public CustomerDTO convertToDTOWithFeedback(String customerId) {
         Customer customer = cusRepo.findById(customerId)
@@ -120,19 +115,7 @@ public class CustomerService {
         customerDTO.setAddress(customer.getAddress());
         customerDTO.setGender(customer.getGender());
 
-        // Mapping feedbackList
-//        if (customer.getFeedbackList() != null) {
-//            List<FeedbackDTO> feedbackDTOList = customer.getFeedbackList().stream().map(feedback -> {
-//                FeedbackDTO dto = new FeedbackDTO();
-//                dto.setTitle(feedback.getTitle());
-//                dto.setContent(feedback.getContent());
-//                dto.setRating(feedback.getRating());
-//                dto.setCreateAt(feedback.getCreateAt());
-//                // Có thể set thêm các trường khác nếu FeedbackDTO có
-//                return dto;
-//            }).collect(Collectors.toList());
-//            customerDTO.setFeedbackList(feedbackDTOList);
-//        }
+
 
         return customerDTO;
     }

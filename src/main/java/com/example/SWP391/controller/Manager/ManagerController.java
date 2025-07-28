@@ -51,14 +51,14 @@ public class ManagerController {
     public ResponseEntity<?> assignStaff(@PathVariable(name = "assignedId") Long assignedId,
                                          @RequestBody AssignRequest assignRequest) {
 
-        // ✅ 1. Lấy Staff và Manager
+
         Staff staff1 = staffRepository.findById(assignRequest.getStaffID())
                 .orElseThrow(() -> new RuntimeException("StaffID not found"));
 
         Manager manager = managerRepository.findById(assignRequest.getManagerID())
                 .orElseThrow(() -> new RuntimeException("Manager not found"));
 
-        // ✅ 2. Tìm thông tin BookingAssigned
+
         BookingAssigned assigned = bookingAssignedRepository.findById(assignedId)
                 .orElseThrow(() -> new IllegalArgumentException("Booking assigned not found"));
 
@@ -66,7 +66,7 @@ public class ManagerController {
         String newTimeRange=assigned.getAppointmentTime();
 
 
-        // ✅ 3. Kiểm tra nếu staff đã được phân công trong cùng ngày
+
 
         List<BookingAssigned> existingAssignments = bookingAssignedRepository
                 .findByStaffAndAppointmentDate(staff1.getStaffID(), newDate);
@@ -78,32 +78,29 @@ public class ManagerController {
                 );
         if (conflict) {
             return ResponseEntity.badRequest()
-                    .body("❌ Nhân viên đã được phân công vào " + newDate + " khung giờ " + newTimeRange);
+                    .body(" Nhân viên đã được phân công vào " + newDate + " khung giờ " + newTimeRange);
         }
 
 
-//        if (!existingAssignments.isEmpty()) {
-//            return ResponseEntity.badRequest()
-//                    .body("Nhân viên đã được phân công vào ngày " + assignDate);
-//        }
 
-        // ✅ 4. Gán Staff và Manager vào BookingAssigned
+
+
         assigned.setAssignedStaff(staff1.getFullName());
         assigned.setStaff(staff1);
         assigned.setManager(manager);
         assigned.setStatus("Booking Confirmed");
 
-        // ✅ 5. Gán staff vào Booking
+
         Booking booking = assigned.getBooking();
         booking.setStaff(staff1);
         booking.setStatus("Booking Confirmed");
 
 
 
-        // ✅ 6. Đánh dấu staff không còn khả dụng
+
         staff1.setAvaliable(false);
 
-        // ✅ 7. Lưu thay đổi
+
         bookingRepository.save(booking);
         staffRepository.save(staff1);
         bookingAssignedRepository.save(assigned);
@@ -113,10 +110,10 @@ public class ManagerController {
 
         Report report;
         if (existingReport.isPresent()) {
-            // Nếu đã có Report → cập nhật lại
+
             report = existingReport.get();
         } else {
-            // Chưa có → tạo mới
+
             report = new Report();
             report.setBookingAssigned(assigned); // rất quan trọng
         }
@@ -133,7 +130,7 @@ public class ManagerController {
 
         reportRepository.save(report);
 
-        // ✅ 9. Cập nhật Result nếu có
+
         Optional<Result> resultOpt = resultRepository.findByBooking(booking);
         if (resultOpt.isPresent()) {
             Result result = resultOpt.get();
@@ -142,7 +139,7 @@ public class ManagerController {
             resultRepository.save(result);
         }
 
-        // ✅ 10. Trả về kết quả
+
         return ResponseEntity.ok("Assigned successfully");
     }
 
@@ -346,7 +343,7 @@ public class ManagerController {
             LocalTime end = LocalTime.parse(parts[1].trim(), formatter);
             return new LocalTime[]{start, end};
         } catch (Exception e) {
-            throw new RuntimeException("❌ Invalid time format: " + timeRange + ". Expected HH:mm - HH:mm");
+            throw new RuntimeException(" Invalid time format: " + timeRange + ". Expected HH:mm - HH:mm");
         }
     }
 

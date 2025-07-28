@@ -10,7 +10,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173", "https://sandbox.vnpayment.vn") // thêm origin nếu cần
+                .allowedOrigins("http://localhost:5173", "https://sandbox.vnpayment.vn")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
                 .exposedHeaders("Authorization") // nếu bạn dùng JWT

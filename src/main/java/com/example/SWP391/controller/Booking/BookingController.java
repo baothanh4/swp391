@@ -26,7 +26,7 @@ public class BookingController {
     @Autowired private final BookingService bookingService;
     @Autowired private final QRService qrService;
 
-    // ✅ Lấy danh sách tất cả các booking
+
     @GetMapping("/bookings")
     public ResponseEntity<?> getAllBookings() {
         List<Booking> bookings = bookingRepository.findAll();
@@ -36,7 +36,7 @@ public class BookingController {
         return ResponseEntity.ok(bookingDTOS);
     }
 
-    // ✅ Tạo booking mới, xử lý thêm thanh toán QR hoặc VNPay
+
     @PostMapping("/bookings/{serviceID}/{customerID}")
     public ResponseEntity<?> createBooking(
             @PathVariable String serviceID,
@@ -61,7 +61,7 @@ public class BookingController {
         bookingRepository.save(booking);
         return ResponseEntity.ok("Update status successfully");
     }
-    // ✅ Chuyển từ Entity -> DTO
+
     public BookingDTO convertDTO(Booking booking) {
         BookingDTO bookingDTO = new BookingDTO();
         bookingDTO.setBookingId(booking.getBookingId());

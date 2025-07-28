@@ -57,20 +57,20 @@ public class AdminController {
                 return ResponseEntity.badRequest().body("Tên đăng nhập đã tồn tại.");
             }
 
-            // 2. Tạo tài khoản mới
+
             Account account = new Account();
             account.setUsername(request.getUsername());
-            account.setPassword(request.getPassword()); // 👈 Nhớ mã hóa
+            account.setPassword(request.getPassword());
             account.setEmail(request.getEmail());
             account.setPhone(request.getPhone());
             account.setRole(request.getRole().toUpperCase());
             account.setCreateAt(LocalDate.now());
             account.setEnabled(true);
-            account.setFullname(request.getFullName());// Chưa kích hoạt
+            account.setFullname(request.getFullName());
 
-            account = accountRepo.save(account); // Lưu & lấy lại ID
+            account = accountRepo.save(account);
 
-            // 3. Gán role
+
             String role = request.getRole().toUpperCase();
             String fullName = request.getFullName();
 
@@ -134,7 +134,7 @@ public class AdminController {
 
             Account account = optionalAccount.get();
 
-            // Nếu là Customer, kiểm tra các booking
+
             if (account.getCustomer() != null) {
                 List<Booking> bookings = bookingRepo.findByCustomer(account.getCustomer());
 
@@ -149,7 +149,7 @@ public class AdminController {
                 custRepo.delete(account.getCustomer());
             }
 
-            // Xử lý các role khác
+
             if (account.getAdmin() != null) {
                 adminRepo.delete(account.getAdmin());
             }
@@ -162,7 +162,7 @@ public class AdminController {
                 staffRepo.delete(account.getStaff());
             }
 
-            // Xóa tài khoản
+
             accountRepo.delete(account);
 
             return ResponseEntity.ok("Account deleted successfully.");

@@ -65,12 +65,7 @@ public class PaymentController {
         return ResponseEntity.ok("QR payment confirmed");
     }
 
-//    @PostMapping("/vnpay")
-//    public ResponseEntity<?> createVNPay(@RequestBody VNPayRequest req, HttpServletRequest request) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
-//        String clientIp = request.getRemoteAddr();
-//        String url = vnPayService.createVNPayUrl(req.getPaymentCode(), req.getTotalCost(), clientIp);
-//        return ResponseEntity.ok(Map.of("vnpUrl", url));
-//    }
+
 
     @GetMapping("/vnpay-return")
     public ResponseEntity<String> handleVnpayReturn(HttpServletRequest request) {
@@ -79,7 +74,7 @@ public class PaymentController {
 
         boolean isValid = VNPayUtils.verifySignature(vnpParams, vnpSecureHash, "59PJT7JAH0G371AXJT8SMG6S7W3WBF5V");
         if (!isValid) {
-            return ResponseEntity.badRequest().body("❌ Invalid VNPay signature");
+            return ResponseEntity.badRequest().body(" Invalid VNPay signature");
         }
 
         String paymentCode = vnpParams.get("vnp_OrderInfo").replace("Thanh toan cho ma GD: ", "").trim();
@@ -87,13 +82,12 @@ public class PaymentController {
         Booking booking = bookingRepository.findByPaymentCode(paymentCode)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
 
-        // ✅ Cập nhật trạng thái sau thanh toán thành công
 
 
         booking.setStatus("Payment Confirmed");
         bookingRepository.save(booking);
 
-        // ✅ Redirect về frontend có paymentCode để frontend biết tiếp tục ký tên
+
         String redirectUrl = "http://localhost:5173/booking?paymentCode=" + booking.getPaymentCode();
         return ResponseEntity.status(302).header("Location", redirectUrl).build();
     }
@@ -106,7 +100,7 @@ public class PaymentController {
         booking.setStatus("Payment Confirmed");
         bookingRepository.save(booking);
         bookingAssignedRepository.save(bookingAssigned);
-        return ResponseEntity.ok("✅ Booking status updated to Payment Confirmed");
+        return ResponseEntity.ok(" Booking status updated to Payment Confirmed");
     }
     @GetMapping("/by-payment-code/{paymentCode}")
     public ResponseEntity<Booking> getBookingByPaymentCode(@PathVariable String paymentCode) {

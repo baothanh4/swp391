@@ -71,17 +71,17 @@ public class AdminService {
     public void registerAccount(RegisterRequestDTO request) {
         Account account = new Account();
         account.setUsername(request.getUsername());
-        account.setPassword(request.getPassword()); // TODO: hash password
+        account.setPassword(request.getPassword());
         account.setEmail(request.getEmail());
         account.setPhone(request.getPhone());
         account.setRole(request.getRole());
         account.setCreateAt(LocalDate.now());
         account.setEnabled(false);
 
-        // ✅ Cần set fullname trước khi save để tránh lỗi Hibernate
+
         account.setFullname(request.getFullName());
 
-        // ✅ Save account trước khi gán cho entity con
+
         account = accountRepo.save(account);
 
         switch (request.getRole()) {
