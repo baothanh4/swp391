@@ -37,7 +37,7 @@ public class PasswordResetService {
         PasswordResetToken token=new PasswordResetToken();
         token.setEmail(email);
         token.setToken(otp);
-        token.setExpiryDate(LocalDateTime.now().plusMinutes(15));
+        token.setExpiryDate(LocalDateTime.now().plusMinutes(1));
 
         tokenRepo.save(token);
         sendOtpEmail(email,otp);
@@ -45,10 +45,10 @@ public class PasswordResetService {
 
     private void sendOtpEmail(String to, String otp) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("genetix.noreply@gmail.com"); // 👈 BẮT BUỘC PHẢI CÓ
+        message.setFrom("genetix.noreply@gmail.com");
         message.setTo(to);
         message.setSubject("Reset password");
-        message.setText("Your OTP code is : " + otp + "\nExpirated in 5 minutes.");
+        message.setText("Your OTP code is : " + otp + "\nExpirated in 1 minutes.");
         mailSender.send(message);
     }
 
@@ -72,7 +72,7 @@ public class PasswordResetService {
             throw new RuntimeException("Email not found");
         }
 
-        // (Khuyến nghị) Mã hóa mật khẩu trước khi lưu
+
         account.setPassword(newPassword);  // Phải inject passwordEncoder
         accRepo.save(account);  // <-- Bạn đã thiếu dòng này
 
