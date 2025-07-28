@@ -21,6 +21,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -228,42 +229,46 @@ public class AuthController {
         }
     }
 
-
+    @Transactional
     @PostMapping("/google")
     public ResponseEntity<?> loginWithGoogle(@RequestBody Map<String, String> body) {
-        String idToken=body.get("credential");
+        String idToken = body.get("credential");
 
-        GoogleIdTokenVerifier verifier=new GoogleIdTokenVerifier.Builder(new NetHttpTransport(),new JacksonFactory())
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new JacksonFactory())
                 .setAudience(Collections.singletonList("26142191146-7u8f63rgtupdv8v6kv8ug307j55hjfob.apps.googleusercontent.com"))
                 .build();
 
-        try{
-            GoogleIdToken googleIdToken=verifier.verify(idToken);
-            if(googleIdToken==null){
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token Google is not available");
+        try {
+            GoogleIdToken googleIdToken = verifier.verify(idToken);
+            if (googleIdToken == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Google token");
             }
-            GoogleIdToken.Payload payload=googleIdToken.getPayload();
-            String email= payload.getEmail();
-            String name=(String) payload.get("name");
-            String picture=(String) payload.get("picture");
 
-            //Find the email
-            Account account=accountRepo.findByEmail(email);
+            GoogleIdToken.Payload payload = googleIdToken.getPayload();
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+            String picture = (String) payload.get("picture");
 
-            if(account==null){
-                account=new Account();
+            // 1. Tìm account theo email
+            Account account = accountRepo.findByEmail(email);
+            if(name==null || name.trim().isEmpty()){
+                name="Google User";
+            }
+
+            // 2. Nếu chưa có, tạo mới
+            if (account == null) {
+                account = new Account();
                 account.setUsername(email);
-                account.setPassword("");
+                account.setPassword(""); // không cần password
                 account.setEmail(email);
                 account.setPhone("");
                 account.setRole("Customer");
-                account.setCreateAt(LocalDate.now());
                 account.setEnabled(true);
+                account.setCreateAt(LocalDate.now());
                 account.setFullname(name);
 
-
-                Customer customer=new Customer();
-                customer.setCustomerID(generateCustomId("CUST",customerRepository.count()));
+                Customer customer = new Customer();
+                customer.setCustomerID(generateCustomId("CUST"));
                 customer.setFullName(name);
                 customer.setEmail(email);
                 customer.setPhone("");
@@ -272,20 +277,20 @@ public class AuthController {
                 customer.setAccount(account);
 
                 account.setCustomer(customer);
-
                 accountRepo.save(account);
                 customerRepository.save(customer);
-            }else{
-                if(account.getFullname()==null || account.getFullname().isEmpty()){
+            } else {
+                // Nếu có account nhưng thiếu fullname hoặc customer thì cập nhật
+                if (account.getFullname() == null || account.getFullname().isEmpty()) {
                     account.setFullname(name);
                 }
 
-                if(account.getCustomer()==null){
-                    Customer customer=new Customer();
-                    customer.setCustomerID(generateCustomId("CUST",customerRepository.count()));
+                if (account.getCustomer() == null) {
+                    Customer customer = new Customer();
+                    customer.setCustomerID(generateCustomId("CUST"));
                     customer.setFullName(name);
                     customer.setEmail(email);
-                    customer.setPhone(account.getPhone()!=null? account.getPhone() : "");
+                    customer.setPhone(account.getPhone() != null ? account.getPhone() : "");
                     customer.setAddress("");
                     customer.setGender(null);
                     customer.setDob(null);
@@ -294,41 +299,48 @@ public class AuthController {
                     account.setCustomer(customer);
                     customerRepository.save(customer);
                 }
+
                 accountRepo.save(account);
             }
-            Customer customer=account.getCustomer();
-            if(customer==null){
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Account that not link the customer");
-            }
-            String token= jwtTokenProvider.generateToken(account.getUsername());
-            String role= account.getRole().toUpperCase();
 
-            Map<String,Object>response=new HashMap<>();
-            response.put("token",token);
-            response.put("refreshToken",token);
-            response.put("id",account.getAccountID());
-            response.put("customerID",customer.getCustomerID());
-            response.put("username",account.getUsername());
-            response.put("fullname",account.getFullname());
-            response.put("email",account.getEmail());
-            response.put("phone",account.getPhone());
-            response.put("role",role);
-            response.put("avatar",picture);
-            response.put("picture",picture);
-            response.put("isEmailVerified",true);
-            response.put("createAt",account.getCreateAt());
+            Customer customer = account.getCustomer();
+            if (customer == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Account is not linked to any customer");
+            }
+
+            // 3. Tạo token và trả về response
+            String token = jwtTokenProvider.generateToken(account.getUsername());
+            String role = account.getRole().toUpperCase();
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("refreshToken", token);
+            response.put("id", account.getAccountID());
+            response.put("customerID", customer.getCustomerID());
+            response.put("username", account.getUsername());
+            response.put("fullname", account.getFullname());
+            response.put("email", account.getEmail());
+            response.put("phone", account.getPhone());
+            response.put("role", role);
+            response.put("avatar", picture);
+            response.put("picture", picture);
+            response.put("isEmailVerified", true);
+            response.put("createAt", account.getCreateAt());
             response.put("loginMethod", "google");
 
             return ResponseEntity.ok(response);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error login by Google");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Google login failed: " + e.getMessage());
         }
     }
 
 
-    private String generateCustomId(String prefix, long count) {
-        return String.format("%s%03d", prefix, count + 1);
+
+    private String generateCustomId(String prefix){
+        return prefix+System.currentTimeMillis();
     }
 
     @PostMapping("/request-otp")
